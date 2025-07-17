@@ -37,9 +37,12 @@ test("should accept EPUB file upload", async () => {
   })
 
   expect(response.status).toBe(200)
-  
-  const result = await response.json() as any
+
+  const result = (await response.json()) as any
   expect(result.author).toBe("Test Author")
   expect(result.title).toBe("Test Book")
-  expect(result.chapterTitles).toEqual(["Chapter 1: Introduction", "Chapter 2: Conclusion"])
+  expect(result.chapterTitles).toEqual([
+    "Chapter 1: Introduction",
+    "Chapter 2: Conclusion",
+  ])
 })

@@ -22,7 +22,8 @@
     "express": "^4.21.1",
     "express-rate-limit": "^7.4.1",
     "hono": "^4.8.5",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "supabase": "^2.31.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

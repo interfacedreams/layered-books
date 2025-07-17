@@ -6,3 +6,5 @@
 # backend
 backend/.env
 backend/node_modules
+backend/supabase/.branches
+backend/supabase/.temp
