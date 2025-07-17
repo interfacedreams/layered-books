@@ -1,0 +1,8 @@
+**/CLAUDE.local.md
+**/CLAUDE.md
+.vscode/
+
+
+# backend
+backend/.env
+backend/node_modules
