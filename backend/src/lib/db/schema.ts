@@ -1,3 +1,4 @@
+import type { InferInsertModel } from "drizzle-orm"
 import {
   index,
   integer,
@@ -7,7 +8,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core"
 
-export const books = pgTable("books", {
+export const booksTable = pgTable("books", {
   id: varchar("id", { length: 12 }).primaryKey(),
   title: text("title").notNull(),
   author: text("author").notNull(),
@@ -15,13 +16,13 @@ export const books = pgTable("books", {
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
 })
 
-export const chapters = pgTable(
+export const chaptersTable = pgTable(
   "chapters",
   {
     id: varchar("id", { length: 12 }).primaryKey(),
     bookId: varchar("bookId", { length: 12 })
       .notNull()
-      .references(() => books.id, { onDelete: "cascade" }),
+      .references(() => booksTable.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     title: text("title").notNull(),
     rawContent: text("rawContent").notNull(),
@@ -36,13 +37,13 @@ export const chapters = pgTable(
   }),
 )
 
-export const keyPoints = pgTable(
+export const keyPointsTable = pgTable(
   "key_points",
   {
     id: varchar("id", { length: 12 }).primaryKey(),
     chapterId: varchar("chapterId", { length: 12 })
       .notNull()
-      .references(() => chapters.id, { onDelete: "cascade" }),
+      .references(() => chaptersTable.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     pointText: text("pointText").notNull(),
     sectionText: text("sectionText").notNull(),
@@ -57,13 +58,13 @@ export const keyPoints = pgTable(
   }),
 )
 
-export const keyDetails = pgTable(
+export const keyDetailsTable = pgTable(
   "key_details",
   {
     id: varchar("id", { length: 12 }).primaryKey(),
     keyPointId: varchar("keyPointId", { length: 12 })
       .notNull()
-      .references(() => keyPoints.id, { onDelete: "cascade" }),
+      .references(() => keyPointsTable.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     content: text("content").notNull(),
     createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
@@ -76,3 +77,9 @@ export const keyDetails = pgTable(
     ),
   }),
 )
+
+// Has all fields including the id and makes createdAt optional
+export type Book = InferInsertModel<typeof booksTable>
+export type Chapter = InferInsertModel<typeof chaptersTable>
+export type KeyPoint = InferInsertModel<typeof keyPointsTable>
+export type KeyDetail = InferInsertModel<typeof keyDetailsTable>

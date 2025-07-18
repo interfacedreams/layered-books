@@ -1,129 +1,79 @@
-import { db, type DbConnection } from "../db"
-import { books, chapters, keyDetails, keyPoints } from "../db/schema"
-import type {
-  BookData,
-  ChapterData,
-  KeyDetailData,
-  KeyPointData,
-} from "../types"
-
-function generateId(): string {
-  // Generate a random 12-character string
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
-  let result = ""
-  for (let i = 0; i < 12; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
-}
+import { type DbConnection, db } from "../db"
+import {
+  type Book,
+  type Chapter,
+  type KeyDetail,
+  type KeyPoint,
+  booksTable,
+  chaptersTable,
+  keyDetailsTable,
+  keyPointsTable,
+} from "../db/schema"
 
 export async function saveBook(
-  book: BookData,
+  book: Book,
   tx: DbConnection = db,
 ): Promise<string> {
-  const bookWithId = {
-    id: generateId(),
-    ...book,
-  }
-
   const result = await tx
-    .insert(books)
-    .values(bookWithId)
-    .returning({ id: books.id })
+    .insert(booksTable)
+    .values(book)
+    .returning({ id: booksTable.id })
   return result[0]!.id
 }
 
 export async function saveChapters(
-  chaptersData: ChapterData[],
-  bookId: string,
+  chapters: Chapter[],
   tx: DbConnection = db,
 ): Promise<string[]> {
-  const chaptersToInsert = chaptersData.map((chapter) => ({
-    id: generateId(),
-    position: chapter.position,
-    title: chapter.title,
-    rawContent: chapter.rawContent,
-    bookId: bookId,
-  }))
+  if (chapters.length === 0) {
+    return []
+  }
 
   const result = await tx
-    .insert(chapters)
-    .values(chaptersToInsert)
-    .returning({ id: chapters.id })
+    .insert(chaptersTable)
+    .values(chapters)
+    .returning({ id: chaptersTable.id })
   return result.map((row) => row.id)
 }
 
 export async function saveKeyPoints(
-  keyPointsData: KeyPointData[],
-  chapterId: string,
+  keyPoints: KeyPoint[],
   tx: DbConnection = db,
 ): Promise<string[]> {
-  if (keyPointsData.length === 0) {
+  if (keyPoints.length === 0) {
     return []
   }
 
-  const keyPointsToInsert = keyPointsData.map((keyPoint) => ({
-    id: generateId(),
-    position: keyPoint.position,
-    pointText: keyPoint.pointText,
-    sectionText: keyPoint.sectionText,
-    chapterId: chapterId,
-  }))
-
   const result = await tx
-    .insert(keyPoints)
-    .values(keyPointsToInsert)
-    .returning({ id: keyPoints.id })
+    .insert(keyPointsTable)
+    .values(keyPoints)
+    .returning({ id: keyPointsTable.id })
   return result.map((row) => row.id)
 }
 
 export async function saveKeyDetails(
-  keyDetailsData: KeyDetailData[],
-  keyPointId: string,
+  keyDetails: KeyDetail[],
   tx: DbConnection = db,
 ): Promise<void> {
-  if (keyDetailsData.length === 0) {
+  if (keyDetails.length === 0) {
     return
   }
 
-  const keyDetailsToInsert = keyDetailsData.map((keyDetail) => ({
-    id: generateId(),
-    position: keyDetail.position,
-    content: keyDetail.content,
-    keyPointId: keyPointId,
-  }))
-
-  await tx.insert(keyDetails).values(keyDetailsToInsert)
+  await tx.insert(keyDetailsTable).values(keyDetails)
 }
 
 export async function saveOutlineEntities(
-  book: BookData,
-  chapters: ChapterData[],
-  keyPoints: KeyPointData[][],
-  keyDetails: KeyDetailData[][][],
+  book: Book,
+  chapters: Chapter[],
+  keyPoints: KeyPoint[],
+  keyDetails: KeyDetail[],
 ): Promise<string> {
   return await db.transaction(async (tx) => {
     const bookId = await saveBook(book, tx)
 
-    const chapterIds = await saveChapters(chapters, bookId, tx)
-    for (let index = 0; index < chapters.length; index++) {
-      const chapterId = chapterIds[index] as string
-
-      const chapterKeyPoints = keyPoints[index] ?? []
-      const chapterKeyDetails = keyDetails[index] ?? []
-
-      const keyPointIds = await saveKeyPoints(chapterKeyPoints, chapterId, tx)
-
-      for (let pointIndex = 0; pointIndex < keyPointIds.length; pointIndex++) {
-        const keyPointId = keyPointIds[pointIndex] as string
-
-        const pointKeyDetails = chapterKeyDetails[pointIndex] ?? []
-
-        if (pointKeyDetails.length > 0) {
-          await saveKeyDetails(pointKeyDetails, keyPointId, tx)
-        }
-      }
-    }
+    await saveChapters(chapters, tx)
+    await saveKeyPoints(keyPoints, tx)
+    await saveKeyDetails(keyDetails, tx)
 
     return bookId
   })

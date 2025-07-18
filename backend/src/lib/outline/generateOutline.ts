@@ -1,15 +1,9 @@
 import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
 import { z } from "zod"
-import type {
-  BookData,
-  BookStructure,
-  ChapterData,
-  ChapterOutline,
-  KeyDetailData,
-  KeyPointData,
-  OutlineEntities,
-} from "../types"
+import type { Book, Chapter, KeyDetail, KeyPoint } from "../db/schema"
+import type { BookStructure, ChapterOutline, OutlineEntities } from "../types"
+import { generateId } from "../utils"
 import { extractSection } from "./extractSection"
 
 const semanticSectionSchema = z.object({
@@ -133,30 +127,36 @@ export async function generateBookOutline(
   bookStructure: BookStructure,
   filename: string,
 ): Promise<OutlineEntities> {
-  const book: BookData = {
+  const bookId = generateId()
+
+  const book: Book = {
+    id: bookId,
     title: bookStructure.title,
     author: bookStructure.author,
     filename,
   }
 
-  const chapters: ChapterData[] = bookStructure.chapterTitles.map(
+  const chapters: Chapter[] = bookStructure.chapterTitles.map(
     (title, index) => ({
+      id: generateId(),
       position: index,
       title: title,
       rawContent: bookStructure.chapterContents[index] ?? "",
+      bookId,
     }),
   )
 
-  const keyPointsAndDetails = await Promise.all(
+  const allKeyPoints: KeyPoint[] = []
+  const allKeyDetails: KeyDetail[] = []
+
+  await Promise.all(
     bookStructure.chapterContents.map(async (content, chapterIndex) => {
-      const chapterTitle =
-        bookStructure.chapterTitles[chapterIndex] ??
-        `Chapter ${chapterIndex + 1}`
+      const chapterTitle = bookStructure.chapterTitles[chapterIndex] ?? ""
+      const chapterId = chapters[chapterIndex]!.id
       const outline = await generateChapterOutline(content, chapterTitle)
 
-      const keyPoints: KeyPointData[] = outline.sections.map(
+      const chapterKeyPoints: KeyPoint[] = outline.sections.map(
         (section, index) => {
-          // Extract the actual section text using the start and end sentences
           let sectionText = ""
           try {
             sectionText = extractSection(
@@ -169,36 +169,39 @@ export async function generateBookOutline(
               `Failed to extract section text for "${section.description}":`,
               error,
             )
-            sectionText = `${section.startSentences} ... ${section.endSentences}`
           }
 
           return {
+            id: generateId(),
             position: index,
             pointText: section.description,
             sectionText,
+            chapterId,
           }
         },
       )
 
-      const keyDetails: KeyDetailData[][] = outline.sectionSummaries.map(
-        (summaries) =>
-          summaries.map((content, detailIndex) => ({
+      outline.sectionSummaries.forEach((summaries, keyPointIndex) => {
+        const keyPointId = chapterKeyPoints[keyPointIndex]!.id
+
+        summaries.forEach((content, detailIndex) => {
+          allKeyDetails.push({
+            id: generateId(),
             position: detailIndex,
             content,
-          })),
-      )
+            keyPointId,
+          })
+        })
+      })
 
-      return { keyPoints, keyDetails }
+      allKeyPoints.push(...chapterKeyPoints)
     }),
   )
-
-  const keyPoints = keyPointsAndDetails.map((result) => result.keyPoints)
-  const keyDetails = keyPointsAndDetails.map((result) => result.keyDetails)
 
   return {
     book,
     chapters,
-    keyPoints,
-    keyDetails,
+    keyPoints: allKeyPoints,
+    keyDetails: allKeyDetails,
   }
 }
