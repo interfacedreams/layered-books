@@ -1,4 +1,4 @@
-import { db } from "../db"
+import { db, type DbConnection } from "../db"
 import { books, chapters, keyDetails, keyPoints } from "../db/schema"
 import type {
   BookData,
@@ -17,13 +17,16 @@ function generateId(): string {
   return result
 }
 
-export async function saveBook(book: BookData): Promise<string> {
+export async function saveBook(
+  book: BookData,
+  tx: DbConnection = db,
+): Promise<string> {
   const bookWithId = {
     id: generateId(),
     ...book,
   }
 
-  const result = await db
+  const result = await tx
     .insert(books)
     .values(bookWithId)
     .returning({ id: books.id })
@@ -33,6 +36,7 @@ export async function saveBook(book: BookData): Promise<string> {
 export async function saveChapters(
   chaptersData: ChapterData[],
   bookId: string,
+  tx: DbConnection = db,
 ): Promise<string[]> {
   const chaptersToInsert = chaptersData.map((chapter) => ({
     id: generateId(),
@@ -42,7 +46,7 @@ export async function saveChapters(
     bookId: bookId,
   }))
 
-  const result = await db
+  const result = await tx
     .insert(chapters)
     .values(chaptersToInsert)
     .returning({ id: chapters.id })
@@ -52,6 +56,7 @@ export async function saveChapters(
 export async function saveKeyPoints(
   keyPointsData: KeyPointData[],
   chapterId: string,
+  tx: DbConnection = db,
 ): Promise<string[]> {
   if (keyPointsData.length === 0) {
     return []
@@ -65,7 +70,7 @@ export async function saveKeyPoints(
     chapterId: chapterId,
   }))
 
-  const result = await db
+  const result = await tx
     .insert(keyPoints)
     .values(keyPointsToInsert)
     .returning({ id: keyPoints.id })
@@ -75,6 +80,7 @@ export async function saveKeyPoints(
 export async function saveKeyDetails(
   keyDetailsData: KeyDetailData[],
   keyPointId: string,
+  tx: DbConnection = db,
 ): Promise<void> {
   if (keyDetailsData.length === 0) {
     return
@@ -87,7 +93,7 @@ export async function saveKeyDetails(
     keyPointId: keyPointId,
   }))
 
-  await db.insert(keyDetails).values(keyDetailsToInsert)
+  await tx.insert(keyDetails).values(keyDetailsToInsert)
 }
 
 export async function saveOutlineEntities(
@@ -96,27 +102,29 @@ export async function saveOutlineEntities(
   keyPoints: KeyPointData[][],
   keyDetails: KeyDetailData[][][],
 ): Promise<string> {
-  const bookId = await saveBook(book)
+  return await db.transaction(async (tx) => {
+    const bookId = await saveBook(book, tx)
 
-  const chapterIds = await saveChapters(chapters, bookId)
-  for (let index = 0; index < chapters.length; index++) {
-    const chapterId = chapterIds[index] as string
+    const chapterIds = await saveChapters(chapters, bookId, tx)
+    for (let index = 0; index < chapters.length; index++) {
+      const chapterId = chapterIds[index] as string
 
-    const chapterKeyPoints = keyPoints[index] ?? []
-    const chapterKeyDetails = keyDetails[index] ?? []
+      const chapterKeyPoints = keyPoints[index] ?? []
+      const chapterKeyDetails = keyDetails[index] ?? []
 
-    const keyPointIds = await saveKeyPoints(chapterKeyPoints, chapterId)
+      const keyPointIds = await saveKeyPoints(chapterKeyPoints, chapterId, tx)
 
-    for (let pointIndex = 0; pointIndex < keyPointIds.length; pointIndex++) {
-      const keyPointId = keyPointIds[pointIndex] as string
+      for (let pointIndex = 0; pointIndex < keyPointIds.length; pointIndex++) {
+        const keyPointId = keyPointIds[pointIndex] as string
 
-      const pointKeyDetails = chapterKeyDetails[pointIndex] ?? []
+        const pointKeyDetails = chapterKeyDetails[pointIndex] ?? []
 
-      if (pointKeyDetails.length > 0) {
-        await saveKeyDetails(pointKeyDetails, keyPointId)
+        if (pointKeyDetails.length > 0) {
+          await saveKeyDetails(pointKeyDetails, keyPointId, tx)
+        }
       }
     }
-  }
 
-  return bookId
+    return bookId
+  })
 }
