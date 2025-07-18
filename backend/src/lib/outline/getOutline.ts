@@ -1,61 +1,54 @@
+import { eq } from "drizzle-orm"
+import { db } from "../db"
+import { books, chapters, keyDetails, keyPoints } from "../db/schema"
 import type {
   BookOutline,
   OutlineChapter,
-  OutlineSection,
   OutlineDetail,
+  OutlineSection,
 } from "../types"
-import { supabase } from "../supabase"
 
 export async function getOutline(bookId: string): Promise<BookOutline | null> {
-  const { data: book, error: bookError } = await supabase
-    .from("books")
-    .select("*")
-    .eq("id", bookId)
-    .single()
+  const book = await db
+    .select()
+    .from(books)
+    .where(eq(books.id, bookId))
+    .limit(1)
+  if (book.length === 0) return null
 
-  if (bookError || !book) return null
-
-  const { data: chapters, error: chaptersError } = await supabase
-    .from("chapters")
-    .select("*")
-    .eq("book_id", bookId)
-    .order("chapter_index")
-
-  if (chaptersError) return null
+  const chaptersData = await db
+    .select()
+    .from(chapters)
+    .where(eq(chapters.bookId, bookId))
+    .orderBy(chapters.position)
 
   const outlineChapters: OutlineChapter[] = await Promise.all(
-    chapters.map(async (chapter) => {
-      const { data: keyPoints, error: keyPointsError } = await supabase
-        .from("key_points")
-        .select("*")
-        .eq("chapter_id", chapter.id)
-        .order("order_index")
-
-      if (keyPointsError) throw keyPointsError
+    chaptersData.map(async (chapter) => {
+      const keyPointsData = await db
+        .select()
+        .from(keyPoints)
+        .where(eq(keyPoints.chapterId, chapter.id))
+        .orderBy(keyPoints.position)
 
       const sections: OutlineSection[] = await Promise.all(
-        keyPoints.map(async (keyPoint) => {
-          const { data: keyDetails, error: keyDetailsError } = await supabase
-            .from("key_details")
-            .select("*")
-            .eq("key_point_id", keyPoint.id)
-            .order("order_index")
+        keyPointsData.map(async (keyPoint) => {
+          const keyDetailsData = await db
+            .select()
+            .from(keyDetails)
+            .where(eq(keyDetails.keyPointId, keyPoint.id))
+            .orderBy(keyDetails.position)
 
-          if (keyDetailsError) throw keyDetailsError
-
-          const details: OutlineDetail[] = keyDetails.map((detail) => ({
+          const details: OutlineDetail[] = keyDetailsData.map((detail) => ({
             id: detail.id,
             content: detail.content,
-            orderIndex: detail.order_index,
+            position: detail.position,
           }))
 
           return {
             id: keyPoint.id,
-            title: keyPoint.section_object.title,
-            description: keyPoint.point_text,
-            startSentences: keyPoint.section_object.startSentences,
-            endSentences: keyPoint.section_object.endSentences,
-            orderIndex: keyPoint.order_index,
+            pointText: keyPoint.pointText,
+            sectionText: keyPoint.sectionText,
+            position: keyPoint.position,
             details,
           }
         }),
@@ -64,17 +57,20 @@ export async function getOutline(bookId: string): Promise<BookOutline | null> {
       return {
         id: chapter.id,
         title: chapter.title,
-        chapterIndex: chapter.chapter_index,
+        position: chapter.position,
         sections,
       }
     }),
   )
 
+  const bookData = book[0]
+  if (!bookData) return null
+
   return {
-    id: book.id,
-    title: book.title,
-    author: book.author,
-    filename: book.filename,
+    id: bookData.id,
+    title: bookData.title,
+    author: bookData.author,
+    filename: bookData.filename,
     chapters: outlineChapters,
   }
 }

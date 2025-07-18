@@ -1,15 +1,16 @@
+import { db } from "../db"
+import { books, chapters, keyDetails, keyPoints } from "../db/schema"
 import type {
   BookData,
   ChapterData,
-  KeyPointData,
   KeyDetailData,
+  KeyPointData,
 } from "../types"
-import { supabase } from "../supabase"
 
 function generateId(): string {
-  // Generate a consistent 12-character alphanumeric string
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let result = ''
+  // Generate a random 12-character string
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+  let result = ""
   for (let i = 0; i < 12; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
@@ -22,74 +23,71 @@ export async function saveBook(book: BookData): Promise<string> {
     ...book,
   }
 
-  const { data, error } = await supabase
-    .from("books")
-    .insert(bookWithId)
-    .select("id")
-    .single()
-
-  if (error) throw error
-  return data.id
+  const result = await db
+    .insert(books)
+    .values(bookWithId)
+    .returning({ id: books.id })
+  return result[0]!.id
 }
 
 export async function saveChapters(
-  chapters: ChapterData[],
+  chaptersData: ChapterData[],
   bookId: string,
 ): Promise<string[]> {
-  const chaptersToInsert = chapters.map((chapter) => ({
+  const chaptersToInsert = chaptersData.map((chapter) => ({
     id: generateId(),
-    chapter_index: chapter.chapterIndex,
+    position: chapter.position,
     title: chapter.title,
-    raw_content: chapter.rawContent,
-    book_id: bookId,
+    rawContent: chapter.rawContent,
+    bookId: bookId,
   }))
 
-  const { data, error } = await supabase
-    .from("chapters")
-    .insert(chaptersToInsert)
-    .select("id")
-
-  if (error) throw error
-  return data.map((row) => row.id)
+  const result = await db
+    .insert(chapters)
+    .values(chaptersToInsert)
+    .returning({ id: chapters.id })
+  return result.map((row) => row.id)
 }
 
 export async function saveKeyPoints(
-  keyPoints: KeyPointData[],
+  keyPointsData: KeyPointData[],
   chapterId: string,
 ): Promise<string[]> {
-  const keyPointsToInsert = keyPoints.map((keyPoint) => ({
+  if (keyPointsData.length === 0) {
+    return []
+  }
+
+  const keyPointsToInsert = keyPointsData.map((keyPoint) => ({
     id: generateId(),
-    order_index: keyPoint.orderIndex,
-    point_text: keyPoint.pointText,
-    section_object: keyPoint.sectionObject,
-    chapter_id: chapterId,
+    position: keyPoint.position,
+    pointText: keyPoint.pointText,
+    sectionText: keyPoint.sectionText,
+    chapterId: chapterId,
   }))
 
-  const { data, error } = await supabase
-    .from("key_points")
-    .insert(keyPointsToInsert)
-    .select("id")
-
-  if (error) throw error
-  return data.map((row) => row.id)
+  const result = await db
+    .insert(keyPoints)
+    .values(keyPointsToInsert)
+    .returning({ id: keyPoints.id })
+  return result.map((row) => row.id)
 }
 
 export async function saveKeyDetails(
-  keyDetails: KeyDetailData[],
+  keyDetailsData: KeyDetailData[],
   keyPointId: string,
 ): Promise<void> {
-  const keyDetailsToInsert = keyDetails.map((keyDetail) => ({
+  if (keyDetailsData.length === 0) {
+    return
+  }
+
+  const keyDetailsToInsert = keyDetailsData.map((keyDetail) => ({
     id: generateId(),
-    order_index: keyDetail.orderIndex,
+    position: keyDetail.position,
     content: keyDetail.content,
-    key_point_id: keyPointId,
+    keyPointId: keyPointId,
   }))
 
-  const { error } = await supabase
-    .from("key_details")
-    .insert(keyDetailsToInsert)
-
-  if (error) throw error
+  await db.insert(keyDetails).values(keyDetailsToInsert)
 }
 
 export async function saveOutlineEntities(

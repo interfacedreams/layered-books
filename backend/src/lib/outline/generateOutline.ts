@@ -1,17 +1,16 @@
-import { generateObject } from "ai"
 import { google } from "@ai-sdk/google"
+import { generateObject } from "ai"
 import { z } from "zod"
-import { nfkc } from "unorm"
 import type {
-  BookStructure,
-  SemanticSection,
-  ChapterOutline,
-  OutlineEntities,
   BookData,
+  BookStructure,
   ChapterData,
-  KeyPointData,
+  ChapterOutline,
   KeyDetailData,
+  KeyPointData,
+  OutlineEntities,
 } from "../types"
+import { extractSection } from "./extractSection"
 
 const semanticSectionSchema = z.object({
   startSentences: z
@@ -24,13 +23,14 @@ const semanticSectionSchema = z.object({
     .describe(
       "VERBATIM copy of last 1-3 sentences of text for the semantic section that you choose - CHARACTER-FOR-CHARACTER identical including ALL punctuation, spaces, tabs, quotes",
     ),
-  title: z.string().describe("Short 2-4 word title for the section"), // unclear whether i will use this - UX decision
   description: z
     .string()
     .describe(
       "One sentence summary of the section using vocabulary from the text",
     ),
 })
+
+export type SemanticSection = z.infer<typeof semanticSectionSchema>
 
 async function generateSections(
   chapterContent: string,
@@ -44,7 +44,7 @@ async function generateSections(
   try {
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),
-      prompt: `Break this chapter into 3-9 semantic sections with complete coverage and no gaps, flowing one after the other.
+      prompt: `Break this chapter into 3-7 semantic sections with complete coverage and no gaps, flowing one after the other.
 
 To distinguish each semantic section, extract 1-3 sentences from the start and 1-3 sentences from the end of that semantic section.
 Use 1 sentence if its likely to be unique and 2-3 sentences if not.
@@ -74,6 +74,8 @@ async function summarizeSection(
       model: google("gemini-2.5-flash"),
       // model: openai("gpt-4.1-mini"),
       prompt: `Create 3-7 bullet point summaries for this section from chapter "${chapterTitle}".
+
+Each bullet point should be a complete sentence 
 
 Section content: ${sectionContent}`,
       schema: z.object({
@@ -112,7 +114,7 @@ async function generateChapterOutline(
         return await summarizeSection(sectionContent, chapterTitle)
       } catch (error) {
         console.error(
-          `Failed to extract/summarize section "${section.title}" from "${chapterTitle}":`,
+          `Failed to extract/summarize section "${section.description}" from "${chapterTitle}":`,
           error,
         )
         return []
@@ -127,56 +129,6 @@ async function generateChapterOutline(
   }
 }
 
-function extractSection(
-  chapterContent: string,
-  startSentences: string,
-  endSentences: string,
-): string {
-  // More aggressive normalization for better matching
-  const normalize = (text: string) =>
-    nfkc(text.trim())
-      .replace(/\s+/g, " ")  // All whitespace to single space
-      .replace(/[""'']/g, '"')  // Normalize quotes
-      .replace(/[–—]/g, "-")   // Normalize dashes
-
-  const normalizedContent = normalize(chapterContent)
-  const normalizedStart = normalize(startSentences)
-  const normalizedEnd = normalize(endSentences)
-
-  let startIndex = normalizedContent.indexOf(normalizedStart)
-
-  // If exact match fails, try finding with first few words
-  if (startIndex === -1) {
-    const startWords = normalizedStart.split(" ").slice(0, 5).join(" ")
-    startIndex = normalizedContent.indexOf(startWords)
-    if (startIndex === -1) {
-      console.error("Failed to find start:", normalizedStart.substring(0, 100))
-      console.error("In content:", normalizedContent.substring(0, 200))
-      throw new Error(`Start sentences not found: "${startSentences}"`)
-    }
-  }
-
-  let endIndex = normalizedContent.indexOf(normalizedEnd, startIndex)
-  
-  // If exact match fails, try finding with last few words
-  if (endIndex === -1) {
-    const endWords = normalizedEnd.split(" ").slice(-5).join(" ")
-    endIndex = normalizedContent.indexOf(endWords, startIndex)
-    if (endIndex !== -1) {
-      endIndex += endWords.length
-    } else {
-      console.error("Failed to find end:", normalizedEnd.substring(-100))
-      console.error("After start at:", startIndex)
-      throw new Error(`End sentences not found: "${endSentences}"`)
-    }
-  } else {
-    endIndex += normalizedEnd.length
-  }
-
-  const sectionFromNormalized = normalizedContent.slice(startIndex, endIndex)
-  return sectionFromNormalized
-}
-
 export async function generateBookOutline(
   bookStructure: BookStructure,
   filename: string,
@@ -189,7 +141,7 @@ export async function generateBookOutline(
 
   const chapters: ChapterData[] = bookStructure.chapterTitles.map(
     (title, index) => ({
-      chapterIndex: index,
+      position: index,
       title: title,
       rawContent: bookStructure.chapterContents[index] ?? "",
     }),
@@ -200,24 +152,38 @@ export async function generateBookOutline(
       const chapterTitle =
         bookStructure.chapterTitles[chapterIndex] ??
         `Chapter ${chapterIndex + 1}`
-      const outline = await generateChapterOutline(content ?? "", chapterTitle)
+      const outline = await generateChapterOutline(content, chapterTitle)
 
       const keyPoints: KeyPointData[] = outline.sections.map(
-        (section, index) => ({
-          orderIndex: index,
-          pointText: section.description,
-          sectionObject: {
-            title: section.title,
-            startSentences: section.startSentences,
-            endSentences: section.endSentences,
-          },
-        }),
+        (section, index) => {
+          // Extract the actual section text using the start and end sentences
+          let sectionText = ""
+          try {
+            sectionText = extractSection(
+              content,
+              section.startSentences,
+              section.endSentences,
+            )
+          } catch (error) {
+            console.error(
+              `Failed to extract section text for "${section.description}":`,
+              error,
+            )
+            sectionText = `${section.startSentences} ... ${section.endSentences}`
+          }
+
+          return {
+            position: index,
+            pointText: section.description,
+            sectionText,
+          }
+        },
       )
 
       const keyDetails: KeyDetailData[][] = outline.sectionSummaries.map(
         (summaries) =>
           summaries.map((content, detailIndex) => ({
-            orderIndex: detailIndex,
+            position: detailIndex,
             content,
           })),
       )

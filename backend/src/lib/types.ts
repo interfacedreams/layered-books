@@ -1,3 +1,5 @@
+import type { SemanticSection } from "./outline/generateOutline"
+
 // Source extraction type
 export interface BookStructure {
   author: string
@@ -14,41 +16,23 @@ export interface BookData {
 }
 
 export interface ChapterData {
-  chapterIndex: number
+  position: number
   title: string
   rawContent: string
 }
 
 export interface KeyPointData {
-  orderIndex: number
+  position: number
   pointText: string
-  sectionObject: {
-    title?: string
-    startSentences: string
-    endSentences: string
-  }
+  sectionText: string
 }
 
 export interface KeyDetailData {
-  orderIndex: number
+  position: number
   content: string
 }
 
 // Generation-specific types
-export interface BookStructure {
-  author: string
-  title: string
-  chapterTitles: string[]
-  chapterContents: string[]
-}
-
-export interface SemanticSection {
-  title: string
-  description: string
-  startSentences: string
-  endSentences: string
-}
-
 export interface ChapterOutline {
   chapterTitle: string
   sections: SemanticSection[]
@@ -66,23 +50,21 @@ export interface OutlineEntities {
 export interface OutlineDetail {
   id: string
   content: string
-  orderIndex: number
+  position: number
 }
 
 export interface OutlineSection {
   id: string
-  title: string
-  description: string
-  startSentences: string
-  endSentences: string
-  orderIndex: number
+  pointText: string
+  sectionText: string
+  position: number
   details: OutlineDetail[]
 }
 
 export interface OutlineChapter {
   id: string
   title: string
-  chapterIndex: number
+  position: number
   sections: OutlineSection[]
 }
 

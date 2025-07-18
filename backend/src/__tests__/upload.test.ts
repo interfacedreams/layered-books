@@ -1,7 +1,7 @@
-import { test, expect } from "bun:test"
+import { expect, test } from "bun:test"
+import { readFileSync } from "node:fs"
 import { Hono } from "hono"
 import generate from "../routes/generate"
-import { readFileSync } from "node:fs"
 
 const app = new Hono()
 app.route("/generate", generate)

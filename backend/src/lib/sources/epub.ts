@@ -1,8 +1,10 @@
-import EPub from "epub"
 import * as cheerio from "cheerio"
+import EPub from "epub"
 import type { BookStructure } from "../types"
 
-export async function extractBookFromEpub(tempFilePath: string): Promise<BookStructure> {
+export async function extractBookFromEpub(
+  tempFilePath: string,
+): Promise<BookStructure> {
   const epub = new EPub(tempFilePath)
 
   await new Promise<void>((resolve, reject) => {

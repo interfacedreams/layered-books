@@ -1,6 +1,6 @@
 import { Hono } from "hono"
-import generate from "./routes/generate"
 import fetch from "./routes/fetch"
+import generate from "./routes/generate"
 
 const app = new Hono()
 const PORT = process.env.PORT ?? 3000
