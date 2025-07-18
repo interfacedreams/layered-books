@@ -1,17 +1,18 @@
+import { Hono } from "hono"
 import { unlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { Hono } from "hono"
 import {
   generateBookOutline,
   getOutline,
   saveOutlineEntities,
-} from "../lib/outline"
-import { extractBookFromEpub } from "../lib/sources"
-import type { BookStructure, OutlineEntities } from "../lib/types"
+} from "../../lib/outline"
+import { extractBookFromEpub } from "../../lib/sources"
+import type { BookStructure, OutlineEntities } from "../../lib/types"
 
 const app = new Hono()
 
+// Development endpoint - generate outline from uploaded EPUB
 app.post("/generate", async (c) => {
   const formData = await c.req.formData()
   const fileEntry = formData.get("file")
@@ -56,7 +57,6 @@ app.post("/generate", async (c) => {
   try {
     await writeFile(tempFilePath, buffer)
 
-    // Extract book structure from EPUB
     let bookStructure: BookStructure
     try {
       bookStructure = await extractBookFromEpub(tempFilePath)
@@ -72,7 +72,6 @@ app.post("/generate", async (c) => {
       )
     }
 
-    // Generate outline from book structure
     let outlineResult: OutlineEntities
     try {
       outlineResult = await generateBookOutline(bookStructure, fileEntry.name)
@@ -87,7 +86,6 @@ app.post("/generate", async (c) => {
       )
     }
 
-    // Save outline to database
     let bookId: string
     try {
       bookId = await saveOutlineEntities(
@@ -107,7 +105,6 @@ app.post("/generate", async (c) => {
       )
     }
 
-    // Fetch complete outline
     const completeOutline = await getOutline(bookId)
 
     return c.json({
@@ -117,6 +114,31 @@ app.post("/generate", async (c) => {
     })
   } finally {
     await unlink(tempFilePath).catch(console.error)
+  }
+})
+
+// Development endpoint - fetch outline by bookId
+app.get("/:bookId", async (c) => {
+  try {
+    const bookId = c.req.param("bookId")
+
+    if (!bookId) {
+      return c.json({ error: "Book ID is required" }, 400)
+    }
+
+    const outline = await getOutline(bookId)
+
+    if (!outline) {
+      return c.json({ error: "Book not found" }, 404)
+    }
+
+    return c.json(outline)
+  } catch (error) {
+    console.error("Error fetching outline:", error)
+    if (error instanceof Error) {
+      return c.json({ error: `Failed to fetch outline: ${error.message}` }, 500)
+    }
+    return c.json({ error: "Failed to fetch outline" }, 500)
   }
 })
 

@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test"
-import { readFileSync } from "node:fs"
 import { Hono } from "hono"
-import generate from "../routes/generate"
+import { readFileSync } from "node:fs"
+import outline from "../routes/dev/outline"
 
 const app = new Hono()
-app.route("/generate", generate)
+app.route("/dev/outline", outline)
 
 test("should reject PNG file upload", async () => {
   const pngFile = new File(["fake png data"], "test.png", {
@@ -14,7 +14,7 @@ test("should reject PNG file upload", async () => {
   const formData = new FormData()
   formData.append("file", pngFile)
 
-  const response = await app.request("/generate", {
+  const response = await app.request("/dev/outline/generate", {
     method: "POST",
     body: formData,
   })
@@ -31,7 +31,7 @@ test("should accept EPUB file upload", async () => {
   const formData = new FormData()
   formData.append("file", epubFile)
 
-  const response = await app.request("/generate", {
+  const response = await app.request("/dev/outline/generate", {
     method: "POST",
     body: formData,
   })
