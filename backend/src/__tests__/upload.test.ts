@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test"
 import { Hono } from "hono"
 import { readFileSync } from "node:fs"
-import outline from "../routes/dev/outline"
+import book from "../routes/book"
 
 const app = new Hono()
-app.route("/dev/outline", outline)
+app.route("/book", book)
 
 test("should reject PNG file upload", async () => {
   const pngFile = new File(["fake png data"], "test.png", {
@@ -14,7 +14,7 @@ test("should reject PNG file upload", async () => {
   const formData = new FormData()
   formData.append("file", pngFile)
 
-  const response = await app.request("/dev/outline/generate", {
+  const response = await app.request("/book/summarize", {
     method: "POST",
     body: formData,
   })
@@ -31,7 +31,7 @@ test("should accept EPUB file upload", async () => {
   const formData = new FormData()
   formData.append("file", epubFile)
 
-  const response = await app.request("/dev/outline/generate", {
+  const response = await app.request("/book/summarize", {
     method: "POST",
     body: formData,
   })
@@ -42,6 +42,10 @@ test("should accept EPUB file upload", async () => {
   expect(result.author).toBe("Test Author")
   expect(result.title).toBe("Test Book")
   expect(result.outline).toBeDefined()
+  expect(result.summaries).toBeDefined()
+  expect(result.summaries.l0Summary).toBeDefined()
+  expect(result.summaries.l1Summary).toBeDefined()
+  expect(result.summaries.l2Summary).toBeDefined()
   expect(result.outline.chapters).toBeDefined()
   expect(result.outline.chapters.length).toBe(2)
   expect(result.outline.chapters[0].title).toBe("Chapter 1: Introduction")

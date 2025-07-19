@@ -1,5 +1,5 @@
 import type { Book, Chapter, KeyDetail, KeyPoint } from "./db/schema"
-import type { SemanticSection } from "./outline/generateOutline"
+import type { SemanticSection } from "./outline"
 
 // Source extraction type
 export interface BookStructure {
@@ -38,4 +38,21 @@ export interface OutlineChapter extends Chapter {
 
 export interface BookOutline extends Book {
   chapters: OutlineChapter[]
+}
+
+// Partial outline types for different abstraction levels
+export interface PartialOutlineDetail extends KeyDetail {
+  content: string
+}
+
+export interface PartialOutlineKeyPoint extends KeyPoint {
+  keyDetails?: PartialOutlineDetail[]
+}
+
+export interface PartialOutlineChapter extends Chapter {
+  keyPoints?: PartialOutlineKeyPoint[]
+}
+
+export interface PartialBookOutline extends Book {
+  chapters: PartialOutlineChapter[]
 }

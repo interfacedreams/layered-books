@@ -78,8 +78,26 @@ export const keyDetailsTable = pgTable(
   }),
 )
 
+export const summariesTable = pgTable(
+  "summaries",
+  {
+    id: varchar("id", { length: 12 }).primaryKey(),
+    bookId: varchar("bookId", { length: 12 })
+      .notNull()
+      .references(() => booksTable.id, { onDelete: "cascade" }),
+    l0Summary: text("l0Summary").notNull(),
+    l1Summary: text("l1Summary").notNull(),
+    l2Summary: text("l2Summary").notNull(),
+    createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    bookIdIdx: index("idx_summaries_book_id").on(table.bookId),
+  }),
+)
+
 // Has all fields including the id and makes createdAt optional
 export type Book = InferInsertModel<typeof booksTable>
 export type Chapter = InferInsertModel<typeof chaptersTable>
 export type KeyPoint = InferInsertModel<typeof keyPointsTable>
 export type KeyDetail = InferInsertModel<typeof keyDetailsTable>
+export type Summary = InferInsertModel<typeof summariesTable>
