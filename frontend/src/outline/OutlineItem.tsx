@@ -87,14 +87,15 @@ export default function OutlineItem({
   }
 
   return (
-    <li className="list-none">
+    <li className={clsx("list-none", isChapter && "mb-1")}>
       <button
         ref={buttonRef}
         type="button"
         className={clsx(
-          "relative group rounded-lg py-1 px-2 transition-colors w-full text-left cursor-pointer",
+          "relative group rounded-lg px-2 transition-colors w-full text-left cursor-pointer",
           "hover:bg-gray-100",
           (isSelected || isItemHovered) && "bg-gray-100",
+          isChapter ? "py-3" : "py-1",
         )}
         onClick={handleClick}
         onMouseEnter={() => setIsItemHovered(true)}
