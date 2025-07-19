@@ -120,8 +120,10 @@ Section content: ${sectionContent}`,
 
 function getStyleGuidelines(contentType: string): string {
   return `Style guidelines for ${contentType}:
-- Use the author's voice and vocabulary from the text
-- Be direct and concise 
-- Do not start with 'This chapter', 'This section', or 'The author'
+- Act as if you are the author taking readable, clear notes on the text.
+- Use the text's voice and vocabulary
+- Use declarative language
+- Be direct and concise and keep it simple
+- NEVER use terms like 'this chapter', 'this section', or 'the author'
 - Write complete sentences`
 }
