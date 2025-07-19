@@ -10,5 +10,6 @@ backend/supabase/.branches
 backend/supabase/.temp
 
 # frontend
+frontend/.env
 frontend/node_modules
 frontend/dist

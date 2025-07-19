@@ -143,9 +143,9 @@ app.post("/summarize", async (c) => {
     }
 
     return c.json({
-      bookId,
-      author: bookStructure.author,
+      id: bookId,
       title: bookStructure.title,
+      author: bookStructure.author,
       outline: completeOutline,
       summaries,
     })
@@ -180,7 +180,7 @@ app.get("/:bookId", async (c) => {
       title: outline.title,
       author: outline.author,
       outline,
-      summary: {
+      summaries: {
         l0Summary: summary.l0Summary,
         l1Summary: summary.l1Summary,
         l2Summary: summary.l2Summary,
