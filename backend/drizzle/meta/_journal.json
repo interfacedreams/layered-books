@@ -15,6 +15,20 @@
       "when": 1752883588963,
       "tag": "0001_freezing_midnight",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1752949234164,
+      "tag": "0002_aspiring_exiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1752949269898,
+      "tag": "0003_broad_master_mold",
+      "breakpoints": true
     }
   ]
 }

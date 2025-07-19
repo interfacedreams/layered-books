@@ -3,9 +3,9 @@ import { unlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
-  generateBookOutline,
   generateBookStructure,
   getOutline,
+  orchestrateBookOutline,
   saveOutlineEntities,
 } from "../lib/outline"
 import { extractRawContentFromEpub } from "../lib/sources"
@@ -80,7 +80,7 @@ app.post("/summarize", async (c) => {
 
     let outlineResult: OutlineEntities
     try {
-      outlineResult = await generateBookOutline(
+      outlineResult = await orchestrateBookOutline(
         chapters,
         bookTitle,
         bookAuthor,

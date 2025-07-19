@@ -5,9 +5,12 @@ import book from "./routes/book"
 const app = new Hono()
 const PORT = process.env.PORT ?? 3000
 
-app.use("*", cors({
-  origin: "http://localhost:5173",
-}))
+app.use(
+  "*",
+  cors({
+    origin: "http://localhost:5173",
+  }),
+)
 
 app.get("/ping", (c) => c.text("pong"))
 

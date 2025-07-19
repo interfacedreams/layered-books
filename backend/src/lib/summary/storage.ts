@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm"
 import { db } from "../db"
-import { summariesTable, type Summary } from "../db/schema"
+import { type Summary, summariesTable } from "../db/schema"
 import { generateId } from "../utils"
 
 export async function saveSummary(
@@ -10,7 +10,7 @@ export async function saveSummary(
   l2Summary: string,
 ): Promise<string> {
   const summaryId = generateId()
-  
+
   const summary: Summary = {
     id: summaryId,
     bookId,
@@ -20,7 +20,7 @@ export async function saveSummary(
   }
 
   await db.insert(summariesTable).values(summary)
-  
+
   return summaryId
 }
 

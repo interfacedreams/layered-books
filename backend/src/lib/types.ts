@@ -1,5 +1,4 @@
 import type { Book, Chapter, KeyDetail, KeyPoint } from "./db/schema"
-import type { SemanticSection } from "./outline"
 
 // Source extraction type
 export interface BookStructure {
@@ -9,8 +8,17 @@ export interface BookStructure {
 }
 
 // Generation-specific types
+
+export interface SemanticSection {
+  startSentences: string
+  endSentences: string
+  description: string
+}
+
 export interface ChapterOutline {
+  // TODO: rename this to title
   chapterTitle: string
+  description: string
   sections: SemanticSection[]
   sectionSummaries: string[][]
 }

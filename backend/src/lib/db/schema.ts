@@ -25,6 +25,7 @@ export const chaptersTable = pgTable(
       .references(() => booksTable.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     title: text("title").notNull(),
+    description: text("description").notNull().default(""),
     rawContent: text("rawContent").notNull(),
     createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
   },
