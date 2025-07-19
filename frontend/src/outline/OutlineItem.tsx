@@ -37,6 +37,7 @@ export default function OutlineItem({
   const [isIconAreaHovered, setIsIconAreaHovered] = useState(false)
   const showIcons = isItemHovered || isIconAreaHovered
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const userClickedRef = useRef(false)
   const isSelected = selectedItemId === item.id
 
   const [isExpanded, setIsExpanded] = useState(
@@ -44,7 +45,8 @@ export default function OutlineItem({
   )
 
   useEffect(() => {
-    if (expansionPath.includes(item.id)) {
+    if (expansionPath.includes(item.id) && !userClickedRef.current) {
+      // only expand items in the expansion path on first page load, not on manual clicks
       setIsExpanded(true)
     }
   }, [expansionPath, item.id])
@@ -68,6 +70,7 @@ export default function OutlineItem({
 
   const handleClick = () => {
     if (hasChildren) {
+      userClickedRef.current = true
       setIsExpanded(!isExpanded)
     }
     onItemClick(item.id)
