@@ -64,7 +64,7 @@ export default function Outline({
           <OutlineItem
             key={item.id}
             item={item}
-            maxDepth={abstractionLevel}
+            maxDepthExclusive={abstractionLevel}
             selectedItemId={currentHash}
             expansionPath={expansionPath}
             shouldScroll={shouldScroll}

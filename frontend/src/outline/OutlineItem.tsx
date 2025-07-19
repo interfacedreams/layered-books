@@ -10,7 +10,7 @@ interface Item {
 
 interface BulletItemProps {
   item: Item
-  maxDepth: number
+  maxDepthExclusive: number
   selectedItemId: string | null
   expansionPath: string[]
   shouldScroll: boolean
@@ -22,7 +22,7 @@ interface BulletItemProps {
 
 export default function OutlineItem({
   item,
-  maxDepth,
+  maxDepthExclusive,
   selectedItemId,
   expansionPath,
   shouldScroll,
@@ -38,7 +38,7 @@ export default function OutlineItem({
   const isSelected = selectedItemId === item.id
 
   const [isExpanded, setIsExpanded] = useState(
-    item.depth < maxDepth || expansionPath.includes(item.id),
+    item.depth < maxDepthExclusive || expansionPath.includes(item.id),
   )
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export default function OutlineItem({
             <OutlineItem
               key={child.id}
               item={child}
-              maxDepth={maxDepth}
+              maxDepthExclusive={maxDepthExclusive}
               selectedItemId={selectedItemId}
               expansionPath={expansionPath}
               shouldScroll={shouldScroll}
