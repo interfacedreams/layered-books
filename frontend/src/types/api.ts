@@ -32,6 +32,7 @@ export interface BookOutline {
 export interface OutlineChapter {
   id: string
   title: string
+  description: string
   position: number
   rawContent: string
   bookId: string

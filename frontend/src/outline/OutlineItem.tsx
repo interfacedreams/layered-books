@@ -1,9 +1,11 @@
+import clsx from "clsx"
 import { ChevronDown, ChevronRight, Copy, Link } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface Item {
   id: string
   content: string
+  description?: string
   depth: number
   children?: Item[]
 }
@@ -62,6 +64,7 @@ export default function OutlineItem({
 
   const hasChildren = item.children && item.children.length > 0
   const shouldShowChildren = isExpanded && hasChildren
+  const isChapter = item.depth === 0
 
   const handleClick = () => {
     if (hasChildren) {
@@ -85,11 +88,11 @@ export default function OutlineItem({
       <button
         ref={buttonRef}
         type="button"
-        className={`
-          relative group rounded-lg py-1 px-2 transition-colors w-full text-left cursor-pointer
-          ${isSelected ? "bg-gray-100" : isItemHovered ? "bg-gray-50" : ""}
-          hover:bg-gray-50
-        `}
+        className={clsx(
+          "relative group rounded-lg py-1 px-2 transition-colors w-full text-left cursor-pointer",
+          "hover:bg-gray-100",
+          (isSelected || isItemHovered) && "bg-gray-100",
+        )}
         onClick={handleClick}
         onMouseEnter={() => setIsItemHovered(true)}
         onMouseLeave={() => setIsItemHovered(false)}
@@ -145,7 +148,19 @@ export default function OutlineItem({
               •
             </span>
           )}
-          <span className="text-gray-800">{item.content}</span>
+          <div className="flex flex-col">
+            <span
+              className={clsx(
+                "text-gray-800",
+                isChapter && "text-lg font-semibold",
+              )}
+            >
+              {item.content}
+            </span>
+            {isChapter && item.description && (
+              <span className="mt-1">{item.description}</span>
+            )}
+          </div>
         </div>
       </button>
 
