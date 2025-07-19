@@ -5,8 +5,7 @@ import type { SemanticSection } from "./outline"
 export interface BookStructure {
   author: string
   title: string
-  chapterTitles: string[]
-  chapterContents: string[]
+  content: string
 }
 
 // Generation-specific types

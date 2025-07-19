@@ -1,4 +1,5 @@
 export { filterOutlineByDepth } from "./filterByDepth"
 export { generateBookOutline, type SemanticSection } from "./generateOutline"
 export { getOutline } from "./getOutline"
+export { generateBookStructure } from "./parseChapters"
 export { saveOutlineEntities } from "./saveOutline"

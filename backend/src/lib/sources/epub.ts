@@ -2,7 +2,7 @@ import * as cheerio from "cheerio"
 import EPub from "epub"
 import type { BookStructure } from "../types"
 
-export async function extractBookFromEpub(
+export async function extractRawContentFromEpub(
   tempFilePath: string,
 ): Promise<BookStructure> {
   const epub = new EPub(tempFilePath)
@@ -15,10 +15,9 @@ export async function extractBookFromEpub(
 
   const author = epub.metadata.creator ?? "Unknown Author"
   const title = epub.metadata.title ?? "Untitled Book"
-  const chapterTitles = epub.flow.map(
-    (chapter, index) => chapter.title ?? `Chapter ${index + 1}`,
-  )
 
+  // These are not necessarily the true chapters. Epub files can be flawed.
+  // We use an LLM for chapter extraction later.
   const chapterContents = await Promise.all(
     epub.flow.map(
       (chapter) =>
@@ -35,10 +34,12 @@ export async function extractBookFromEpub(
     ),
   )
 
+  // Concatenate all chapter contents with some separation
+  const content = chapterContents.join("\n\n")
+
   return {
-    author,
+    content,
     title,
-    chapterTitles,
-    chapterContents,
+    author,
   }
 }

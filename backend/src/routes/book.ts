@@ -4,12 +4,13 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
   generateBookOutline,
+  generateBookStructure,
   getOutline,
   saveOutlineEntities,
 } from "../lib/outline"
-import { extractBookFromEpub } from "../lib/sources"
+import { extractRawContentFromEpub } from "../lib/sources"
 import { generateBookSummaries, getSummary, saveSummary } from "../lib/summary"
-import type { BookStructure, OutlineEntities } from "../lib/types"
+import type { OutlineEntities } from "../lib/types"
 
 const app = new Hono()
 
@@ -57,9 +58,14 @@ app.post("/summarize", async (c) => {
   try {
     await writeFile(tempFilePath, buffer)
 
-    let bookStructure: BookStructure
+    let chapters: { title: string; content: string }[]
+    let bookTitle: string
+    let bookAuthor: string
     try {
-      bookStructure = await extractBookFromEpub(tempFilePath)
+      const rawBook = await extractRawContentFromEpub(tempFilePath)
+      bookTitle = rawBook.title
+      bookAuthor = rawBook.author
+      chapters = await generateBookStructure(rawBook.content)
     } catch (extractError) {
       console.error("EPUB extraction failed:", extractError)
       return c.json(
@@ -74,7 +80,12 @@ app.post("/summarize", async (c) => {
 
     let outlineResult: OutlineEntities
     try {
-      outlineResult = await generateBookOutline(bookStructure, fileEntry.name)
+      outlineResult = await generateBookOutline(
+        chapters,
+        bookTitle,
+        bookAuthor,
+        fileEntry.name,
+      )
     } catch (generateError) {
       console.error("Outline generation failed:", generateError)
       return c.json(
@@ -144,8 +155,8 @@ app.post("/summarize", async (c) => {
 
     return c.json({
       id: bookId,
-      title: bookStructure.title,
-      author: bookStructure.author,
+      title: bookTitle,
+      author: bookAuthor,
       outline: completeOutline,
       summaries,
     })

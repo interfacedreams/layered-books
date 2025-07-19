@@ -1,5 +1,13 @@
 import { nfkc } from "unorm"
 
+export function normalize(text: string) {
+  return nfkc(text.trim())
+    .replace(/[ \t]+/g, " ") // preserve newlines though!
+    .replace(/[""]/g, '"') // Normalize curly quotes to straight quotes
+    .replace(/['']/g, "'") // Normalize curly apostrophes to straight apostrophes
+    .replace(/[–—]/g, "-")
+}
+
 function findUniqueIndex(
   content: string,
   target: string,
@@ -18,7 +26,9 @@ function findUniqueIndex(
 
     index = content.indexOf(fallbackWords, startPos)
     if (index === -1) {
-      throw new Error(`${type} sentences not found: "${target}"`)
+      throw new Error(
+        `${type} sentences not found: "${target}" in "${content.slice(0, 1000)}..."`,
+      )
     }
 
     const secondOccurrence = content.indexOf(fallbackWords, index + 1)
@@ -32,18 +42,12 @@ function findUniqueIndex(
   return index
 }
 
-export function extractSection(
-  chapterContent: string,
+export function extractSegment(
+  content: string,
   startSentences: string,
   endSentences: string,
 ): string {
-  const normalize = (text: string) =>
-    nfkc(text.trim())
-      .replace(/[ \t]+/g, " ") // preserve newlines though!
-      .replace(/[""'']/g, '"')
-      .replace(/[–—]/g, "-")
-
-  const normalizedContent = normalize(chapterContent)
+  const normalizedContent = normalize(content)
   const normalizedStart = normalize(startSentences)
   const normalizedEnd = normalize(endSentences)
 

@@ -1,1 +1,1 @@
-export { extractBookFromEpub } from "./epub"
+export { extractRawContentFromEpub } from "./epub"

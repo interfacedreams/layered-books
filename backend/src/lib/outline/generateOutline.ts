@@ -2,9 +2,9 @@ import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
 import { z } from "zod"
 import type { Book, Chapter, KeyDetail, KeyPoint } from "../db/schema"
-import type { BookStructure, ChapterOutline, OutlineEntities } from "../types"
+import type { ChapterOutline, OutlineEntities } from "../types"
 import { generateId } from "../utils"
-import { extractSection } from "./extractSection"
+import { extractSegment } from "./segment"
 
 const semanticSectionSchema = z.object({
   startSentences: z
@@ -20,11 +20,19 @@ const semanticSectionSchema = z.object({
   description: z
     .string()
     .describe(
-      "One sentence summary of the section using vocabulary from the text",
+      "Direct statement about what this section covers. Do not start with 'This section' or 'The author'. Use author's voice.",
     ),
 })
 
 export type SemanticSection = z.infer<typeof semanticSectionSchema>
+
+const sectionSummarySchema = z.object({
+  bulletPoints: z
+    .array(z.string())
+    .min(3)
+    .max(7)
+    .describe("1-2 sentence bullet point summaries of the section"),
+})
 
 async function generateSections(
   chapterContent: string,
@@ -36,6 +44,7 @@ async function generateSections(
   }
 
   try {
+    console.log(`🤖 LLM: Generating sections for "${chapterTitle}"`)
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),
       prompt: `Break this chapter into 3-7 semantic sections with complete coverage and no gaps, flowing one after the other.
@@ -62,23 +71,24 @@ Content: ${chapterContent}`,
 async function summarizeSection(
   sectionContent: string,
   chapterTitle: string,
+  sectionDescription: string,
 ): Promise<string[]> {
   try {
+    console.log(`🤖 LLM: Summarizing section from "${chapterTitle}"`)
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),
-      // model: openai("gpt-4.1-mini"),
-      prompt: `Create 3-7 bullet point summaries for this section from chapter "${chapterTitle}".
+      //   model: openai("gpt-4.1-mini"),
+      //   model: google("gemini-2.5-pro"),
+      prompt: `Given this key point: "${sectionDescription}"
 
-Each bullet point should be a complete sentence 
+Extract 3-7 supporting details that ENRICH and EXPAND on this key point without repeating it. 
+Adjacent key details in this section should also be included.
+
+
+Write direct statements in the author's voice. Do not start with "This section" or "The author".
 
 Section content: ${sectionContent}`,
-      schema: z.object({
-        bulletPoints: z
-          .array(z.string())
-          .min(3)
-          .max(7)
-          .describe("Bullet point summaries of the section"),
-      }),
+      schema: sectionSummarySchema,
     })
 
     return object.bulletPoints
@@ -100,12 +110,16 @@ async function generateChapterOutline(
   const sectionSummaries = await Promise.all(
     sections.map(async (section) => {
       try {
-        const sectionContent = extractSection(
+        const sectionContent = extractSegment(
           chapterContent,
           section.startSentences,
           section.endSentences,
         )
-        return await summarizeSection(sectionContent, chapterTitle)
+        return await summarizeSection(
+          sectionContent,
+          chapterTitle,
+          section.description,
+        )
       } catch (error) {
         console.error(
           `Failed to extract/summarize section "${section.description}" from "${chapterTitle}":`,
@@ -124,43 +138,45 @@ async function generateChapterOutline(
 }
 
 export async function generateBookOutline(
-  bookStructure: BookStructure,
+  chapters: { title: string; content: string }[],
+  bookTitle: string,
+  bookAuthor: string,
   filename: string,
 ): Promise<OutlineEntities> {
   const bookId = generateId()
 
   const book: Book = {
     id: bookId,
-    title: bookStructure.title,
-    author: bookStructure.author,
+    title: bookTitle,
+    author: bookAuthor,
     filename,
   }
 
-  const chapters: Chapter[] = bookStructure.chapterTitles.map(
-    (title, index) => ({
-      id: generateId(),
-      position: index,
-      title: title,
-      rawContent: bookStructure.chapterContents[index] ?? "",
-      bookId,
-    }),
-  )
+  const chapterEntities: Chapter[] = chapters.map((chapter, index) => ({
+    id: generateId(),
+    position: index,
+    title: chapter.title,
+    rawContent: chapter.content,
+    bookId,
+  }))
 
   const allKeyPoints: KeyPoint[] = []
   const allKeyDetails: KeyDetail[] = []
 
   await Promise.all(
-    bookStructure.chapterContents.map(async (content, chapterIndex) => {
-      const chapterTitle = bookStructure.chapterTitles[chapterIndex] ?? ""
-      const chapterId = chapters[chapterIndex]!.id
-      const outline = await generateChapterOutline(content, chapterTitle)
+    chapters.map(async (chapter, chapterIndex) => {
+      const chapterId = chapterEntities[chapterIndex]!.id
+      const outline = await generateChapterOutline(
+        chapter.content,
+        chapter.title,
+      )
 
       const chapterKeyPoints: KeyPoint[] = outline.sections.map(
         (section, index) => {
           let sectionText = ""
           try {
-            sectionText = extractSection(
-              content,
+            sectionText = extractSegment(
+              chapter.content,
               section.startSentences,
               section.endSentences,
             )
@@ -200,7 +216,7 @@ export async function generateBookOutline(
 
   return {
     book,
-    chapters,
+    chapters: chapterEntities,
     keyPoints: allKeyPoints,
     keyDetails: allKeyDetails,
   }

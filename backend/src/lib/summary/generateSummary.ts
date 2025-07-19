@@ -19,6 +19,7 @@ async function generateSummaryAtLevel(
     level === 0 ? "chapters" : level === 1 ? "key points" : "key details"
 
   try {
+    console.log(`🤖 LLM: Generating L${level} summary for "${outline.title}"`)
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),
       prompt: `Create a ${targetParagraphs}-paragraph summary of this book using the provided outline.
