@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import type { BookOutline } from "../types/api"
+import type { BookOutline } from "../types"
 import OutlineItem from "./OutlineItem"
 import { findPathToItem, transformOutlineToItems } from "./utils"
 

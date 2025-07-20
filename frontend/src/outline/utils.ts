@@ -3,7 +3,7 @@ import type {
   OutlineChapter,
   OutlineDetail,
   OutlineKeyPoint,
-} from "../types/api"
+} from "../types"
 
 export function findPathToItem(
   outline: BookOutline,

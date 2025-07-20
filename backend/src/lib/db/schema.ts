@@ -1,5 +1,6 @@
 import type { InferInsertModel } from "drizzle-orm"
 import {
+  boolean,
   index,
   integer,
   pgTable,
@@ -13,6 +14,9 @@ export const booksTable = pgTable("books", {
   title: text("title").notNull(),
   author: text("author").notNull(),
   filename: text("filename").notNull(),
+  sessionId: text("sessionId").notNull(),
+  // used for books with no copyright protections
+  alwaysVisible: boolean("alwaysVisible").notNull().default(false),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
 })
 

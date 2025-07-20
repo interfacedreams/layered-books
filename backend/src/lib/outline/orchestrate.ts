@@ -49,6 +49,7 @@ export async function orchestrateBookOutline(
   bookTitle: string,
   bookAuthor: string,
   filename: string,
+  sessionId: string,
 ): Promise<OutlineEntities> {
   const bookId = generateId()
 
@@ -57,6 +58,8 @@ export async function orchestrateBookOutline(
     title: bookTitle,
     author: bookAuthor,
     filename,
+    sessionId,
+    alwaysVisible: process.env.NODE_ENV === "development",
   }
 
   const chapterEntities: Chapter[] = []

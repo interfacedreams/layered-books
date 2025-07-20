@@ -17,9 +17,14 @@ const app = new Hono()
 app.post("/summarize", async (c) => {
   const formData = await c.req.formData()
   const fileEntry = formData.get("file")
+  const sessionId = formData.get("sessionId")
 
   if (!fileEntry || !(fileEntry instanceof File)) {
     return c.json({ error: "No file uploaded" }, 400)
+  }
+
+  if (!sessionId || typeof sessionId !== "string") {
+    return c.json({ error: "Session ID is required" }, 400)
   }
 
   const isEpubExtension = fileEntry.name.toLowerCase().endsWith(".epub")
@@ -85,6 +90,7 @@ app.post("/summarize", async (c) => {
         bookTitle,
         bookAuthor,
         fileEntry.name,
+        sessionId,
       )
     } catch (generateError) {
       console.error("Outline generation failed:", generateError)
@@ -168,6 +174,7 @@ app.post("/summarize", async (c) => {
 app.get("/:bookId", async (c) => {
   try {
     const bookId = c.req.param("bookId")
+    const sessionId = c.req.header("x-session-id")
 
     if (!bookId) {
       return c.json({ error: "Book ID is required" }, 400)
@@ -180,6 +187,10 @@ app.get("/:bookId", async (c) => {
 
     if (!outline) {
       return c.json({ error: "Book not found" }, 404)
+    }
+
+    if (!outline.alwaysVisible && outline.sessionId !== sessionId) {
+      return c.json({ error: "Access denied" }, 403)
     }
 
     if (!summary) {

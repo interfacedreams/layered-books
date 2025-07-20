@@ -1,6 +1,5 @@
 import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
-import { title } from "node:process"
 import { z } from "zod"
 import { extractSegment } from "./segment"
 
@@ -44,13 +43,16 @@ Guidelines:
 
 Full book content: ${bookContent}`,
       schema: z.object({
-        chapters: z.array(chapterSchema).min(1).max(50),
+        chapters: z.array(chapterSchema).min(1).max(300),
       }),
     })
 
     return object.chapters
   } catch (error) {
-    console.error(`Failed to parse chapters for "${title}":`, error)
+    console.error(
+      `Failed to parse chapters for "${bookContent.slice(0, 1000)}...":`,
+      error,
+    )
     return []
   }
 }

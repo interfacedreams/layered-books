@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom"
 import { fetchBook } from "./api/books"
 import AbstractionStepper from "./outline/AbstractionStepper"
 import Outline from "./outline/Outline"
+import { getSessionId } from "./utils"
 
 export default function BookPage() {
   const { bookId } = useParams<{ bookId: string }>()
@@ -16,7 +17,7 @@ export default function BookPage() {
     error,
   } = useQuery({
     queryKey: ["book", bookId],
-    queryFn: () => fetchBook(bookId!),
+    queryFn: () => fetchBook(bookId!, getSessionId()),
     enabled: !!bookId,
   })
 
@@ -50,21 +51,18 @@ export default function BookPage() {
   return (
     <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
-      <p className="text-xl text-gray-600 mb-8">{book.author}</p>
+      <p className="text-xl text-gray-600 mb-8">By: {book.author}</p>
 
       <AbstractionStepper
         value={abstractionLevel}
         onChange={handleAbstractionLevelChange}
       />
 
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">Outline</h2>
-        <Outline
-          key={abstractionLevel}
-          outline={book.outline}
-          abstractionLevel={abstractionLevel}
-        />
-      </div>
+      <Outline
+        key={abstractionLevel}
+        outline={book.outline}
+        abstractionLevel={abstractionLevel}
+      />
     </div>
   )
 }
