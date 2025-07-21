@@ -42,12 +42,12 @@ export function transformOutlineToItems(outline: BookOutline) {
     children:
       chapter.keyPoints?.map((keyPoint: OutlineKeyPoint) => ({
         id: keyPoint.id,
-        content: keyPoint.pointText,
+        content: keyPoint.text,
         depth: 1,
         children:
           keyPoint.keyDetails?.map((detail: OutlineDetail) => ({
             id: detail.id,
-            content: detail.content,
+            content: detail.text,
             depth: 2,
           })) ?? [],
       })) ?? [],

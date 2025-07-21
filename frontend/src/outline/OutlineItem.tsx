@@ -1,5 +1,11 @@
 import clsx from "clsx"
-import { ChevronDown, ChevronRight, Copy, Link } from "lucide-react"
+import {
+  BookOpenText,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Link,
+} from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface Item {
@@ -86,6 +92,15 @@ export default function OutlineItem({
     onLink(item.id)
   }
 
+  const handleRead = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    console.log(`Read button clicked for item:`, {
+      id: item.id,
+      content: item.content,
+      depth: item.depth,
+    })
+  }
+
   return (
     <li className={clsx("list-none", isChapter && "mb-1")}>
       <button
@@ -104,14 +119,25 @@ export default function OutlineItem({
       >
         {showIcons && (
           <div
-            className="absolute left-0 top-0 mt-1 transform -translate-x-full -ml-1 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            className="absolute left-0 top-0 mt-1 transform -translate-x-full -ml-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
             onMouseEnter={() => setIsIconAreaHovered(true)}
             onMouseLeave={() => setIsIconAreaHovered(false)}
           >
+            {(item.depth === 0 || item.depth === 1) && (
+              <button
+                type="button"
+                onClick={handleRead}
+                className="px-2 py-1 text-sm bg-sky-200 hover:bg-sky-300 text-gray-700 hover:text-gray-900 rounded-md transition-colors flex items-center gap-1.5"
+                title="Read from here"
+              >
+                <BookOpenText size={14} />
+                Read
+              </button>
+            )}
             <button
               type="button"
               onClick={handleCopy}
-              className="text-gray-600 cursor-pointer hover:text-black transition-colors"
+              className="p-1.5 bg-sky-200 hover:bg-sky-300 text-gray-700 hover:text-gray-900 rounded-md transition-colors"
               title="Copy"
             >
               <Copy size={16} />
@@ -119,7 +145,7 @@ export default function OutlineItem({
             <button
               type="button"
               onClick={handleLink}
-              className="text-gray-600 cursor-pointer hover:text-black transition-colors"
+              className="p-1.5 bg-sky-200 hover:bg-sky-300 text-gray-700 hover:text-gray-900 rounded-md transition-colors"
               title="Get link"
             >
               <Link size={16} />
@@ -152,7 +178,7 @@ export default function OutlineItem({
               •
             </span>
           )}
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-1">
             <span
               className={clsx(
                 "text-gray-800",

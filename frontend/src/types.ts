@@ -22,10 +22,19 @@ export interface BookGetResponse {
 }
 
 // Outline Structure Types
+export interface BookChunk {
+  index: number
+  text: string
+}
+
 export interface BookOutline {
   id: string
   title: string
   author: string
+  filename: string
+  sessionId: string
+  alwaysVisible: boolean
+  chunks: BookChunk[]
   chapters: OutlineChapter[]
 }
 
@@ -34,25 +43,24 @@ export interface OutlineChapter {
   title: string
   description: string
   position: number
-  rawContent: string
-  bookId: string
-  keyPoints: OutlineKeyPoint[]
+  textStartChunk: number
+  textEndChunk: number
+  keyPoints?: OutlineKeyPoint[]
 }
 
 export interface OutlineKeyPoint {
   id: string
+  text: string
   position: number
-  pointText: string
-  sectionText: string
-  chapterId: string
-  keyDetails: OutlineDetail[]
+  textStartChunk: number
+  textEndChunk: number
+  keyDetails?: OutlineDetail[]
 }
 
 export interface OutlineDetail {
   id: string
+  text: string
   position: number
-  content: string
-  keyPointId: string
 }
 
 export interface ApiError {
