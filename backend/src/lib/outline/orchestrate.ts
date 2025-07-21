@@ -83,24 +83,14 @@ export async function orchestrateBookOutline(
       })
 
       const chapterKeyPoints: KeyPoint[] = outline.sections.map(
-        (section, index) => {
-          let sectionText = ""
-          try {
-            sectionText = extractSegmentByChunks(
-              chapter.content,
-              section.startChunk,
-              section.endChunk,
-            )
-          } catch (error) {}
-
-          return {
-            id: generateId(),
-            position: index,
-            pointText: section.description,
-            sectionText,
-            chapterId,
-          }
-        },
+        (section, index) => ({
+          id: generateId(),
+          position: index,
+          pointText: section.description,
+          contentStartChunk: section.startChunk,
+          contentEndChunk: section.endChunk,
+          chapterId,
+        }),
       )
 
       outline.sectionSummaries.forEach((summaries, keyPointIndex) => {

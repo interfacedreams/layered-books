@@ -58,7 +58,8 @@ export const keyPointsTable = pgTable(
       .references(() => chaptersTable.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     pointText: text("pointText").notNull(),
-    sectionText: text("sectionText").notNull(),
+    contentStartChunk: integer("contentStartChunk").notNull(),
+    contentEndChunk: integer("contentEndChunk").notNull(),
     createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
   },
   (table) => ({
@@ -89,7 +90,6 @@ export const keyDetailsTable = pgTable(
     ),
   }),
 )
-
 
 export const summariesTable = pgTable(
   "summaries",
