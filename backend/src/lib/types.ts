@@ -15,12 +15,11 @@ export interface SemanticSection {
   description: string
 }
 
-export interface ChapterOutline {
-  // TODO: rename this to title
-  chapterTitle: string
-  description: string
-  sections: SemanticSection[]
-  sectionSummaries: string[][]
+export interface ChapterWithChunks {
+  title: string
+  text: string
+  startChunk: number
+  endChunk: number
 }
 
 export interface OutlineEntities {
@@ -29,10 +28,16 @@ export interface OutlineEntities {
   keyPoints: KeyPoint[]
   keyDetails: KeyDetail[]
 }
+// Intermediate types (between generation and API response)
+export interface ChapterOutline extends ChapterWithChunks {
+  description: string
+  sections: SemanticSection[]
+  sectionDetails: string[][]
+}
 
 // API response types for structured outline
 export interface OutlineDetail extends KeyDetail {
-  content: string
+  text: string
 }
 
 export interface OutlineKeyPoint extends KeyPoint {
@@ -49,7 +54,7 @@ export interface BookOutline extends Book {
 
 // Partial outline types for different abstraction levels
 export interface PartialOutlineDetail extends KeyDetail {
-  content: string
+  text: string
 }
 
 export interface PartialOutlineKeyPoint extends KeyPoint {

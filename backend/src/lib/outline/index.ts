@@ -1,5 +1,5 @@
 export { filterOutlineByDepth } from "./filterByDepth"
 export { getOutline } from "./getOutline"
 export { orchestrateBookOutline } from "./orchestrate"
-export { generateBookStructure } from "./parseChapters"
+export { generateChapters } from "./parseChapters"
 export { saveOutlineEntities } from "./saveOutline"

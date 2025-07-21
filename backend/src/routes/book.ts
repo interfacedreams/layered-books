@@ -1,17 +1,19 @@
-import { Hono } from "hono"
 import { unlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import type { Chunk } from "../lib/db/schema"
+import { Hono } from "hono"
 import {
-  generateBookStructure,
   getOutline,
   orchestrateBookOutline,
   saveOutlineEntities,
 } from "../lib/outline"
-import { extractRawContentFromEpub } from "../lib/sources"
-import { generateBookSummaries, getSummary, saveSummary } from "../lib/summary"
-import type { OutlineEntities } from "../lib/types"
+import { orchestrateChapters } from "../lib/outline/orchestrate"
+import { extractRawTextFromEpub } from "../lib/sources"
+import type {
+  BookStructure,
+  ChapterWithChunks,
+  OutlineEntities,
+} from "../lib/types"
 
 const app = new Hono()
 
@@ -64,20 +66,16 @@ app.post("/summarize", async (c) => {
   try {
     await writeFile(tempFilePath, buffer)
 
-    let chapters: { title: string; content: string }[]
-    let bookTitle: string
-    let bookAuthor: string
-    let rawBook: { title: string; author: string; chunks: Chunk[] }
+    let chapters: ChapterWithChunks[]
+    let rawBook: BookStructure
     try {
-      rawBook = await extractRawContentFromEpub(tempFilePath)
-      bookTitle = rawBook.title
-      bookAuthor = rawBook.author
+      rawBook = await extractRawTextFromEpub(tempFilePath)
 
-      const contentWithChunkMarkers = rawBook.chunks
-        .map((chunk) => `{{ CHUNK ${chunk.index} }}\n${chunk.content}`)
+      const textWithMarkers = rawBook.chunks
+        .map((chunk) => `{{ CHUNK ${chunk.index} }}\n${chunk.text}`)
         .join("\n\n")
 
-      chapters = await generateBookStructure(contentWithChunkMarkers)
+      chapters = await orchestrateChapters(textWithMarkers)
     } catch (extractError) {
       return c.json(
         {
@@ -93,8 +91,8 @@ app.post("/summarize", async (c) => {
     try {
       outlineResult = await orchestrateBookOutline(
         chapters,
-        bookTitle,
-        bookAuthor,
+        rawBook.title,
+        rawBook.author,
         fileEntry.name,
         sessionId,
         rawBook.chunks,
@@ -121,7 +119,7 @@ app.post("/summarize", async (c) => {
       return c.json(
         {
           error: "Failed to save outline",
-          details: "Could not save the generated outline to the database",
+          details: `Could not save the generated outline to the database: ${saveError}`,
         },
         500,
       )
@@ -132,42 +130,11 @@ app.post("/summarize", async (c) => {
       return c.json({ error: "Failed to retrieve saved outline" }, 500)
     }
 
-    let summaries: { l0Summary: string; l1Summary: string; l2Summary: string }
-    try {
-      summaries = await generateBookSummaries(completeOutline)
-    } catch (summaryError) {
-      return c.json(
-        {
-          error: "Failed to generate summaries",
-          details: "Could not generate book summaries",
-        },
-        500,
-      )
-    }
-
-    try {
-      await saveSummary(
-        bookId,
-        summaries.l0Summary,
-        summaries.l1Summary,
-        summaries.l2Summary,
-      )
-    } catch (saveSummaryError) {
-      return c.json(
-        {
-          error: "Failed to save summaries",
-          details: "Could not save the generated summaries to the database",
-        },
-        500,
-      )
-    }
-
     return c.json({
       id: bookId,
-      title: bookTitle,
-      author: bookAuthor,
+      title: rawBook.title,
+      author: rawBook.author,
       outline: completeOutline,
-      summaries,
     })
   } finally {
     await unlink(tempFilePath).catch(() => {})
@@ -183,10 +150,7 @@ app.get("/:bookId", async (c) => {
       return c.json({ error: "Book ID is required" }, 400)
     }
 
-    const [outline, summary] = await Promise.all([
-      getOutline(bookId),
-      getSummary(bookId),
-    ])
+    const outline = await getOutline(bookId)
 
     if (!outline) {
       return c.json({ error: "Book not found" }, 404)
@@ -196,20 +160,11 @@ app.get("/:bookId", async (c) => {
       return c.json({ error: "Access denied" }, 403)
     }
 
-    if (!summary) {
-      return c.json({ error: "Summary not found for this book" }, 404)
-    }
-
     return c.json({
       id: outline.id,
       title: outline.title,
       author: outline.author,
       outline,
-      summaries: {
-        l0Summary: summary.l0Summary,
-        l1Summary: summary.l1Summary,
-        l2Summary: summary.l2Summary,
-      },
     })
   } catch (error) {
     if (error instanceof Error) {

@@ -2,7 +2,6 @@ import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
 import { z } from "zod"
 import type { SemanticSection } from "../types"
-import { generateId } from "../utils"
 
 const semanticSectionSchema = z.object({
   startChunk: z
@@ -23,7 +22,7 @@ const chapterOutlineSchema = z.object({
   sections: z.array(semanticSectionSchema).min(3).max(9),
 })
 
-const sectionSummarySchema = z.object({
+const sectionDetailsSchema = z.object({
   bulletPoints: z
     .array(z.string())
     .min(3)
@@ -32,44 +31,45 @@ const sectionSummarySchema = z.object({
 })
 
 export async function generateChapterOutline(
-  chapterContent: string,
+  chapterText: string,
   chapterTitle: string,
 ): Promise<{ description: string; sections: SemanticSection[] }> {
-  // Skip if chapter content is too short (less than 500 characters, ~100 words)
-  if (!chapterContent || chapterContent.trim().length < 500) {
+  // Skip if chapter text is too short (less than 500 characters, ~100 words)
+  if (!chapterText || chapterText.trim().length < 500) {
     return { description: "", sections: [] }
   }
+  console.log(`🤖 [START] Generate chapter outline for ${chapterTitle}`)
 
-  const requestId = generateId()
   try {
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),
       temperature: 0.3,
       prompt: `Generate a one sentence description of what this chapter covers and break it into 3-7 semantic sections with complete coverage and no gaps, flowing one after the other.
 
-The content includes chunk markers in the format {{ CHUNK X }}. Use these chunk numbers to define the start and end chunks for each semantic section.
+The text includes chunk markers in the format {{ CHUNK X }}. Use these chunk numbers to define the start and end chunks for each semantic section.
 Each section should span one or more complete chunks (paragraphs).
 
 ${getStyleGuidelines("chapter descriptions and section descriptions")}
 
 Chapter: ${chapterTitle}
 
-Content: ${chapterContent}`,
+Text: ${chapterText}`,
       schema: chapterOutlineSchema,
     })
 
+    console.log(`✅ [END] Generate chapter outline for ${chapterTitle}`)
     return object
   } catch (error) {
     return { description: "", sections: [] }
   }
 }
 
-export async function generateSectionSummary(
-  sectionContent: string,
+export async function generateSectionDetails(
+  sectionText: string,
   chapterTitle: string,
   sectionDescription: string,
 ): Promise<string[]> {
-  const requestId = generateId()
+  console.log(`🤖 [START] Generate section details for ${sectionDescription}`)
   try {
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),
@@ -83,10 +83,12 @@ Adjacent key details in this section should also be included.
 
 ${getStyleGuidelines("key details")}
 
-Section content: ${sectionContent}`,
-      schema: sectionSummarySchema,
+Chapter title: ${chapterTitle}
+Section text: ${sectionText}`,
+      schema: sectionDetailsSchema,
     })
 
+    console.log(`✅ [END] Generate section details for ${sectionDescription}`)
     return object.bulletPoints
   } catch (error) {
     return []

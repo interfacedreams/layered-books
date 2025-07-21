@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { join } from "node:path"
-import { extractRawContentFromEpub } from "./epub"
+import { extractRawTextFromEpub } from "./epub"
 
 const DEBUG = true
 
@@ -9,13 +9,13 @@ const ASSETS_DIR = join(process.cwd(), "tests/assets")
 const epubPath = join(ASSETS_DIR, bookName)
 
 test("EPUB extraction - basic functionality", async () => {
-  const result = await extractRawContentFromEpub(epubPath)
+  const result = await extractRawTextFromEpub(epubPath)
 
   if (DEBUG) {
     console.log(
       `First 100 chunks: ${result.chunks
         .slice(0, 100)
-        .map((chunk) => `{{ CHUNK ${chunk.index} }}\n${chunk.content}`)
+        .map((chunk) => `{{ CHUNK ${chunk.index} }}\n${chunk.text}`)
         .join("\n")}`,
     )
   }
@@ -26,16 +26,16 @@ test("EPUB extraction - basic functionality", async () => {
 
   result.chunks.forEach((chunk, i) => {
     expect(chunk.index).toBe(i + 1)
-    expect(chunk.content).toBeTruthy()
-    expect(typeof chunk.content).toBe("string")
+    expect(chunk.text).toBeTruthy()
+    expect(typeof chunk.text).toBe("string")
   })
 })
 
 test("EPUB extraction - chunk markers work correctly", async () => {
-  const result = await extractRawContentFromEpub(epubPath)
+  const result = await extractRawTextFromEpub(epubPath)
 
   const contentWithChunkMarkers = result.chunks
-    .map((chunk) => `{{ CHUNK ${chunk.index} }}\n${chunk.content}`)
+    .map((chunk) => `{{ CHUNK ${chunk.index} }}\n${chunk.text}`)
     .join("\n\n")
 
   const markerRegex = /\{\{ CHUNK (\d+) \}\}/g

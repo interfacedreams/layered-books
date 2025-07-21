@@ -12,7 +12,7 @@ import {
 
 export interface Chunk {
   index: number
-  content: string
+  text: string
 }
 
 export const booksTable = pgTable("books", {
@@ -37,16 +37,14 @@ export const chaptersTable = pgTable(
     position: integer("position").notNull(),
     title: text("title").notNull(),
     description: text("description").notNull().default(""),
-    rawContent: text("rawContent").notNull(),
+    textStartChunk: integer("textStartChunk").notNull(),
+    textEndChunk: integer("textEndChunk").notNull(),
     createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
   },
-  (table) => ({
-    bookIdIdx: index("idx_chapters_book_id").on(table.bookId),
-    bookIdIndexIdx: index("idx_chapters_book_id_index").on(
-      table.bookId,
-      table.position,
-    ),
-  }),
+  (table) => [
+    index("idx_chapters_book_id").on(table.bookId),
+    index("idx_chapters_book_id_index").on(table.bookId, table.position),
+  ],
 )
 
 export const keyPointsTable = pgTable(
@@ -57,18 +55,15 @@ export const keyPointsTable = pgTable(
       .notNull()
       .references(() => chaptersTable.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
-    pointText: text("pointText").notNull(),
-    contentStartChunk: integer("contentStartChunk").notNull(),
-    contentEndChunk: integer("contentEndChunk").notNull(),
+    text: text("text").notNull(),
+    textStartChunk: integer("textStartChunk").notNull(),
+    textEndChunk: integer("textEndChunk").notNull(),
     createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
   },
-  (table) => ({
-    chapterIdIdx: index("idx_key_points_chapter_id").on(table.chapterId),
-    chapterOrderIdx: index("idx_key_points_chapter_order").on(
-      table.chapterId,
-      table.position,
-    ),
-  }),
+  (table) => [
+    index("idx_key_points_chapter_id").on(table.chapterId),
+    index("idx_key_points_chapter_order").on(table.chapterId, table.position),
+  ],
 )
 
 export const keyDetailsTable = pgTable(
@@ -79,33 +74,13 @@ export const keyDetailsTable = pgTable(
       .notNull()
       .references(() => keyPointsTable.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
-    content: text("content").notNull(),
+    text: text("text").notNull(),
     createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
   },
-  (table) => ({
-    keyPointIdIdx: index("idx_key_details_key_point_id").on(table.keyPointId),
-    pointOrderIdx: index("idx_key_details_point_order").on(
-      table.keyPointId,
-      table.position,
-    ),
-  }),
-)
-
-export const summariesTable = pgTable(
-  "summaries",
-  {
-    id: varchar("id", { length: 12 }).primaryKey(),
-    bookId: varchar("bookId", { length: 12 })
-      .notNull()
-      .references(() => booksTable.id, { onDelete: "cascade" }),
-    l0Summary: text("l0Summary").notNull(),
-    l1Summary: text("l1Summary").notNull(),
-    l2Summary: text("l2Summary").notNull(),
-    createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
-  },
-  (table) => ({
-    bookIdIdx: index("idx_summaries_book_id").on(table.bookId),
-  }),
+  (table) => [
+    index("idx_key_details_key_point_id").on(table.keyPointId),
+    index("idx_key_details_point_order").on(table.keyPointId, table.position),
+  ],
 )
 
 // Has all fields including the id and makes createdAt optional
@@ -113,4 +88,3 @@ export type Book = InferInsertModel<typeof booksTable>
 export type Chapter = InferInsertModel<typeof chaptersTable>
 export type KeyPoint = InferInsertModel<typeof keyPointsTable>
 export type KeyDetail = InferInsertModel<typeof keyDetailsTable>
-export type Summary = InferInsertModel<typeof summariesTable>

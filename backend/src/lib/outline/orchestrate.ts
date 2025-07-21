@@ -1,29 +1,64 @@
 import type { Book, Chapter, Chunk, KeyDetail, KeyPoint } from "../db/schema"
 import { extractSegmentByChunks } from "../sources"
-import type { ChapterOutline, OutlineEntities } from "../types"
+import type {
+  ChapterOutline,
+  ChapterWithChunks,
+  OutlineEntities,
+} from "../types"
 import { generateId } from "../utils"
-import { generateChapterOutline, generateSectionSummary } from "./generate"
+import { generateChapterOutline, generateSectionDetails } from "./generate"
+import { generateChapters } from "./parseChapters"
+
+export async function orchestrateChapters(
+  bookText: string,
+): Promise<ChapterWithChunks[]> {
+  const parsedChapters = await generateChapters(bookText)
+
+  const chapters = parsedChapters.map((chapter) => {
+    try {
+      const segment = extractSegmentByChunks(
+        bookText,
+        chapter.startChunk,
+        chapter.endChunk,
+      )
+      return {
+        title: chapter.chapterTitle,
+        text: segment,
+        startChunk: chapter.startChunk,
+        endChunk: chapter.endChunk,
+      }
+    } catch (error) {
+      return {
+        title: chapter.chapterTitle,
+        text: "",
+        startChunk: chapter.startChunk,
+        endChunk: chapter.endChunk,
+      }
+    }
+  })
+
+  return chapters
+}
 
 async function orchestrateChapterOutline(
-  chapterContent: string,
-  chapterTitle: string,
+  chapter: ChapterWithChunks,
 ): Promise<ChapterOutline> {
   const { description, sections } = await generateChapterOutline(
-    chapterContent,
-    chapterTitle,
+    chapter.text,
+    chapter.title,
   )
 
-  const sectionSummaries = await Promise.all(
+  const sectionDetails = await Promise.all(
     sections.map(async (section) => {
       try {
-        const sectionContent = extractSegmentByChunks(
-          chapterContent,
+        const sectionText = extractSegmentByChunks(
+          chapter.text,
           section.startChunk,
           section.endChunk,
         )
-        return await generateSectionSummary(
-          sectionContent,
-          chapterTitle,
+        return await generateSectionDetails(
+          sectionText,
+          chapter.title,
           section.description,
         )
       } catch (error) {
@@ -33,15 +68,15 @@ async function orchestrateChapterOutline(
   )
 
   return {
-    chapterTitle,
+    ...chapter,
     description,
     sections,
-    sectionSummaries,
+    sectionDetails,
   }
 }
 
 export async function orchestrateBookOutline(
-  chapters: { title: string; content: string }[],
+  chapters: ChapterWithChunks[],
   bookTitle: string,
   bookAuthor: string,
   filename: string,
@@ -49,6 +84,7 @@ export async function orchestrateBookOutline(
   chunks: Chunk[],
 ): Promise<OutlineEntities> {
   const bookId = generateId()
+  console.log(`🤖 Generate book outline for "${bookTitle}"`)
 
   const book: Book = {
     id: bookId,
@@ -67,10 +103,7 @@ export async function orchestrateBookOutline(
 
   await Promise.all(
     chapters.map(async (chapter, chapterIndex) => {
-      const outline = await orchestrateChapterOutline(
-        chapter.content,
-        chapter.title,
-      )
+      const outline = await orchestrateChapterOutline(chapter)
 
       const chapterId = generateId()
       chapterEntities.push({
@@ -78,7 +111,8 @@ export async function orchestrateBookOutline(
         position: chapterIndex,
         title: chapter.title,
         description: outline.description,
-        rawContent: chapter.content,
+        textStartChunk: chapter.startChunk,
+        textEndChunk: chapter.endChunk,
         bookId,
       })
 
@@ -86,21 +120,21 @@ export async function orchestrateBookOutline(
         (section, index) => ({
           id: generateId(),
           position: index,
-          pointText: section.description,
-          contentStartChunk: section.startChunk,
-          contentEndChunk: section.endChunk,
+          text: section.description,
+          textStartChunk: section.startChunk,
+          textEndChunk: section.endChunk,
           chapterId,
         }),
       )
 
-      outline.sectionSummaries.forEach((summaries, keyPointIndex) => {
+      outline.sectionDetails.forEach((details, keyPointIndex) => {
         const keyPointId = chapterKeyPoints[keyPointIndex]!.id
 
-        summaries.forEach((content, detailIndex) => {
+        details.forEach((text, detailIndex) => {
           allKeyDetails.push({
             id: generateId(),
             position: detailIndex,
-            content,
+            text,
             keyPointId,
           })
         })

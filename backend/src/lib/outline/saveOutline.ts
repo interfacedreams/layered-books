@@ -69,12 +69,14 @@ export async function saveOutlineEntities(
   keyDetails: KeyDetail[],
 ): Promise<string> {
   return await db.transaction(async (tx) => {
+    console.log("🤖 [START] Save outline entities")
     const bookId = await saveBook(book, tx)
 
     await saveChapters(chapters, tx)
     await saveKeyPoints(keyPoints, tx)
     await saveKeyDetails(keyDetails, tx)
 
+    console.log("✅ [END] Save outline entities")
     return bookId
   })
 }

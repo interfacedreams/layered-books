@@ -1,2 +1,2 @@
-export { extractRawContentFromEpub } from "./epub"
+export { extractRawTextFromEpub } from "./epub"
 export { extractSegmentByChunks } from "./segment"

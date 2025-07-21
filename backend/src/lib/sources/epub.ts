@@ -3,7 +3,7 @@ import EPub from "epub"
 import type { Chunk } from "../db/schema"
 import type { BookStructure } from "../types"
 
-export async function extractRawContentFromEpub(
+export async function extractRawTextFromEpub(
   tempFilePath: string,
 ): Promise<BookStructure> {
   const epub = new EPub(tempFilePath)
@@ -19,7 +19,7 @@ export async function extractRawContentFromEpub(
 
   // These are not necessarily the true chapters. Epub files can be flawed.
   // We use an LLM for chapter extraction later.
-  const chapterContents = await Promise.all(
+  const chapterTexts = await Promise.all(
     epub.flow.map(
       (chapter) =>
         new Promise<string>((resolve, reject) => {
@@ -39,18 +39,18 @@ export async function extractRawContentFromEpub(
   const chunks: Chunk[] = []
   let chunkIndex = 1
 
-  for (const chapterContent of chapterContents) {
-    if (!chapterContent.trim()) continue
+  for (const chapterText of chapterTexts) {
+    if (!chapterText.trim()) continue
 
     // Split chapter into paragraphs
-    const paragraphs = chapterContent.split(/\n\s*\n/)
+    const paragraphs = chapterText.split(/\n\s*\n/)
 
     for (const paragraph of paragraphs) {
       const trimmedParagraph = paragraph.trim()
       if (trimmedParagraph) {
         chunks.push({
           index: chunkIndex,
-          content: trimmedParagraph,
+          text: trimmedParagraph,
         })
         chunkIndex++
       }
