@@ -3,11 +3,17 @@ import {
   boolean,
   index,
   integer,
+  json,
   pgTable,
   text,
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core"
+
+export interface Chunk {
+  index: number
+  content: string
+}
 
 export const booksTable = pgTable("books", {
   id: varchar("id", { length: 12 }).primaryKey(),
@@ -17,6 +23,7 @@ export const booksTable = pgTable("books", {
   sessionId: text("sessionId").notNull(),
   // used for books with no copyright protections
   alwaysVisible: boolean("alwaysVisible").notNull().default(false),
+  chunks: json("chunks").$type<Chunk[]>().notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
 })
 
@@ -82,6 +89,7 @@ export const keyDetailsTable = pgTable(
     ),
   }),
 )
+
 
 export const summariesTable = pgTable(
   "summaries",

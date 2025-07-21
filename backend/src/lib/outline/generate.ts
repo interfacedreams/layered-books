@@ -5,16 +5,12 @@ import type { SemanticSection } from "../types"
 import { generateId } from "../utils"
 
 const semanticSectionSchema = z.object({
-  startSentences: z
-    .string()
-    .describe(
-      "VERBATIM copy of first 1-3 sentences of text for the semantic section that you choose - CHARACTER-FOR-CHARACTER identical including ALL punctuation, spaces, tabs, quotes",
-    ),
-  endSentences: z
-    .string()
-    .describe(
-      "VERBATIM copy of last 1-3 sentences of text for the semantic section that you choose - CHARACTER-FOR-CHARACTER identical including ALL punctuation, spaces, tabs, quotes",
-    ),
+  startChunk: z
+    .number()
+    .describe("The chunk number where this semantic section starts"),
+  endChunk: z
+    .number()
+    .describe("The chunk number where this semantic section ends"),
   description: z
     .string()
     .describe("One sentence description of what this section covers."),
@@ -46,17 +42,13 @@ export async function generateChapterOutline(
 
   const requestId = generateId()
   try {
-    console.log(
-      `🤖 LLM START [${requestId}]: Generating outline for "${chapterTitle}"`,
-    )
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),
       temperature: 0.3,
       prompt: `Generate a one sentence description of what this chapter covers and break it into 3-7 semantic sections with complete coverage and no gaps, flowing one after the other.
 
-To distinguish each semantic section, extract 1-3 sentences from the start and 1-3 sentences from the end of that semantic section.
-Use 1 sentence if its likely to be unique and 2-3 sentences if not.
-Be sure to output the sentences EXACTLY as they appear and in the sequential order they appear.
+The content includes chunk markers in the format {{ CHUNK X }}. Use these chunk numbers to define the start and end chunks for each semantic section.
+Each section should span one or more complete chunks (paragraphs).
 
 ${getStyleGuidelines("chapter descriptions and section descriptions")}
 
@@ -66,15 +58,8 @@ Content: ${chapterContent}`,
       schema: chapterOutlineSchema,
     })
 
-    console.log(
-      `✅ LLM END [${requestId}]: Completed outline for "${chapterTitle}"`,
-    )
     return object
   } catch (error) {
-    console.error(
-      `❌ LLM ERROR [${requestId}]: Failed to generate outline for "${chapterTitle}":`,
-      error,
-    )
     return { description: "", sections: [] }
   }
 }
@@ -86,9 +71,6 @@ export async function generateSectionSummary(
 ): Promise<string[]> {
   const requestId = generateId()
   try {
-    console.log(
-      `🤖 LLM START [${requestId}]: Summarizing section from "${chapterTitle}"`,
-    )
     const { object } = await generateObject({
       model: google("gemini-2.5-flash"),
       temperature: 0.3,
@@ -105,15 +87,8 @@ Section content: ${sectionContent}`,
       schema: sectionSummarySchema,
     })
 
-    console.log(
-      `✅ LLM END [${requestId}]: Completed section summary from "${chapterTitle}"`,
-    )
     return object.bulletPoints
   } catch (error) {
-    console.error(
-      `❌ LLM ERROR [${requestId}]: Failed to generate summaries for section from "${chapterTitle}":`,
-      error,
-    )
     return []
   }
 }

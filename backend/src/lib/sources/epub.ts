@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio"
 import EPub from "epub"
+import type { Chunk } from "../db/schema"
 import type { BookStructure } from "../types"
 
 export async function extractRawContentFromEpub(
@@ -34,11 +35,30 @@ export async function extractRawContentFromEpub(
     ),
   )
 
-  // Concatenate all chapter contents with some separation
-  const content = chapterContents.join("\n\n")
+  // Create chunks based on paragraph breaks
+  const chunks: Chunk[] = []
+  let chunkIndex = 1
+
+  for (const chapterContent of chapterContents) {
+    if (!chapterContent.trim()) continue
+
+    // Split chapter into paragraphs
+    const paragraphs = chapterContent.split(/\n\s*\n/)
+
+    for (const paragraph of paragraphs) {
+      const trimmedParagraph = paragraph.trim()
+      if (trimmedParagraph) {
+        chunks.push({
+          index: chunkIndex,
+          content: trimmedParagraph,
+        })
+        chunkIndex++
+      }
+    }
+  }
 
   return {
-    content,
+    chunks,
     title,
     author,
   }

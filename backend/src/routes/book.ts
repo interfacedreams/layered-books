@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { unlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import type { Chunk } from "../lib/db/schema"
 import {
   generateBookStructure,
   getOutline,
@@ -66,13 +67,18 @@ app.post("/summarize", async (c) => {
     let chapters: { title: string; content: string }[]
     let bookTitle: string
     let bookAuthor: string
+    let rawBook: { title: string; author: string; chunks: Chunk[] }
     try {
-      const rawBook = await extractRawContentFromEpub(tempFilePath)
+      rawBook = await extractRawContentFromEpub(tempFilePath)
       bookTitle = rawBook.title
       bookAuthor = rawBook.author
-      chapters = await generateBookStructure(rawBook.content)
+
+      const contentWithChunkMarkers = rawBook.chunks
+        .map((chunk) => `{{ CHUNK ${chunk.index} }}\n${chunk.content}`)
+        .join("\n\n")
+
+      chapters = await generateBookStructure(contentWithChunkMarkers)
     } catch (extractError) {
-      console.error("EPUB extraction failed:", extractError)
       return c.json(
         {
           error: "Failed to parse EPUB file",
@@ -91,9 +97,9 @@ app.post("/summarize", async (c) => {
         bookAuthor,
         fileEntry.name,
         sessionId,
+        rawBook.chunks,
       )
     } catch (generateError) {
-      console.error("Outline generation failed:", generateError)
       return c.json(
         {
           error: "Failed to generate outline",
@@ -112,7 +118,6 @@ app.post("/summarize", async (c) => {
         outlineResult.keyDetails,
       )
     } catch (saveError) {
-      console.error("Database save failed:", saveError)
       return c.json(
         {
           error: "Failed to save outline",
@@ -131,7 +136,6 @@ app.post("/summarize", async (c) => {
     try {
       summaries = await generateBookSummaries(completeOutline)
     } catch (summaryError) {
-      console.error("Summary generation failed:", summaryError)
       return c.json(
         {
           error: "Failed to generate summaries",
@@ -149,7 +153,6 @@ app.post("/summarize", async (c) => {
         summaries.l2Summary,
       )
     } catch (saveSummaryError) {
-      console.error("Summary save failed:", saveSummaryError)
       return c.json(
         {
           error: "Failed to save summaries",
@@ -167,7 +170,7 @@ app.post("/summarize", async (c) => {
       summaries,
     })
   } finally {
-    await unlink(tempFilePath).catch(console.error)
+    await unlink(tempFilePath).catch(() => {})
   }
 })
 
@@ -209,7 +212,6 @@ app.get("/:bookId", async (c) => {
       },
     })
   } catch (error) {
-    console.error("Error fetching book:", error)
     if (error instanceof Error) {
       return c.json({ error: `Failed to fetch book: ${error.message}` }, 500)
     }

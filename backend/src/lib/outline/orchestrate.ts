@@ -1,8 +1,8 @@
-import type { Book, Chapter, KeyDetail, KeyPoint } from "../db/schema"
+import type { Book, Chapter, Chunk, KeyDetail, KeyPoint } from "../db/schema"
+import { extractSegmentByChunks } from "../sources"
 import type { ChapterOutline, OutlineEntities } from "../types"
 import { generateId } from "../utils"
 import { generateChapterOutline, generateSectionSummary } from "./generate"
-import { extractSegment } from "./segment"
 
 async function orchestrateChapterOutline(
   chapterContent: string,
@@ -16,10 +16,10 @@ async function orchestrateChapterOutline(
   const sectionSummaries = await Promise.all(
     sections.map(async (section) => {
       try {
-        const sectionContent = extractSegment(
+        const sectionContent = extractSegmentByChunks(
           chapterContent,
-          section.startSentences,
-          section.endSentences,
+          section.startChunk,
+          section.endChunk,
         )
         return await generateSectionSummary(
           sectionContent,
@@ -27,10 +27,6 @@ async function orchestrateChapterOutline(
           section.description,
         )
       } catch (error) {
-        console.error(
-          `Failed to extract/summarize section "${section.description}" from "${chapterTitle}":`,
-          error,
-        )
         return []
       }
     }),
@@ -50,6 +46,7 @@ export async function orchestrateBookOutline(
   bookAuthor: string,
   filename: string,
   sessionId: string,
+  chunks: Chunk[],
 ): Promise<OutlineEntities> {
   const bookId = generateId()
 
@@ -60,6 +57,7 @@ export async function orchestrateBookOutline(
     filename,
     sessionId,
     alwaysVisible: process.env.NODE_ENV === "development",
+    chunks,
   }
 
   const chapterEntities: Chapter[] = []
@@ -88,17 +86,12 @@ export async function orchestrateBookOutline(
         (section, index) => {
           let sectionText = ""
           try {
-            sectionText = extractSegment(
+            sectionText = extractSegmentByChunks(
               chapter.content,
-              section.startSentences,
-              section.endSentences,
+              section.startChunk,
+              section.endChunk,
             )
-          } catch (error) {
-            console.error(
-              `Failed to extract section text for "${section.description}":`,
-              error,
-            )
-          }
+          } catch (error) {}
 
           return {
             id: generateId(),

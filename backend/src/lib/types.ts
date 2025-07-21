@@ -1,17 +1,17 @@
-import type { Book, Chapter, KeyDetail, KeyPoint } from "./db/schema"
+import type { Book, Chapter, Chunk, KeyDetail, KeyPoint } from "./db/schema"
 
 // Source extraction type
 export interface BookStructure {
   author: string
   title: string
-  content: string
+  chunks: Chunk[]
 }
 
 // Generation-specific types
 
 export interface SemanticSection {
-  startSentences: string
-  endSentences: string
+  startChunk: number
+  endChunk: number
   description: string
 }
 
