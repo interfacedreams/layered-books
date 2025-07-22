@@ -3,8 +3,7 @@ import { Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useParams } from "react-router-dom"
 import { fetchBook } from "./api/books"
-import AbstractionStepper from "./outline/AbstractionStepper"
-import Outline from "./outline/Outline"
+import BookPanel from "./BookPanel"
 import PageViewer from "./PageViewer"
 import { getSessionId } from "./utils"
 
@@ -90,23 +89,11 @@ export default function BookPage() {
         {/* Left panel - Outline */}
         <div className="w-1/2 border-r border-gray-200 overflow-y-auto">
           <div className="p-6 pl-40 pr-16">
-            <div className="mb-4">
-              <h1 className="text-2xl font-bold mb-1">{book.title}</h1>
-              <p className="text-lg mb-4">By: {book.author}</p>
-
-              <AbstractionStepper
-                value={abstractionLevel}
-                onChange={handleAbstractionLevelChange}
-              />
-            </div>
-
-            <Outline
-              key={abstractionLevel}
-              outline={book.outline}
+            <BookPanel
+              book={book}
               abstractionLevel={abstractionLevel}
-              onOpenReading={(itemId) =>
-                handleOpenReading(itemId, abstractionLevel)
-              }
+              onAbstractionLevelChange={handleAbstractionLevelChange}
+              onOpenReading={handleOpenReading}
             />
           </div>
         </div>
@@ -126,19 +113,11 @@ export default function BookPage() {
   // Regular outline view
   return (
     <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
-      <p className="text-xl mb-8">By: {book.author}</p>
-
-      <AbstractionStepper
-        value={abstractionLevel}
-        onChange={handleAbstractionLevelChange}
-      />
-
-      <Outline
-        key={abstractionLevel}
-        outline={book.outline}
+      <BookPanel
+        book={book}
         abstractionLevel={abstractionLevel}
-        onOpenReading={(itemId) => handleOpenReading(itemId, abstractionLevel)}
+        onAbstractionLevelChange={handleAbstractionLevelChange}
+        onOpenReading={handleOpenReading}
       />
     </div>
   )
