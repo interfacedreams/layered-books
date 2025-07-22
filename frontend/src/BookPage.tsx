@@ -92,7 +92,7 @@ export default function BookPage() {
           <div className="p-6 pl-40 pr-16">
             <div className="mb-4">
               <h1 className="text-2xl font-bold mb-1">{book.title}</h1>
-              <p className="text-lg text-gray-600 mb-4">By: {book.author}</p>
+              <p className="text-lg mb-4">By: {book.author}</p>
 
               <AbstractionStepper
                 value={abstractionLevel}
@@ -127,7 +127,7 @@ export default function BookPage() {
   return (
     <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
-      <p className="text-xl text-gray-600 mb-8">By: {book.author}</p>
+      <p className="text-xl mb-8">By: {book.author}</p>
 
       <AbstractionStepper
         value={abstractionLevel}
