@@ -6,11 +6,13 @@ import { findPathToItem, transformOutlineToItems } from "./utils"
 interface OutlineProps {
   outline: BookOutline
   abstractionLevel?: number
+  onOpenReading?: (itemId: string) => void
 }
 
 export default function Outline({
   outline,
   abstractionLevel = 1,
+  onOpenReading,
 }: OutlineProps) {
   const [currentHash, setCurrentHash] = useState<string | null>(null)
   const [expansionPath, setExpansionPath] = useState<string[]>([])
@@ -71,6 +73,7 @@ export default function Outline({
             onItemClick={handleItemClick}
             onCopy={handleCopy}
             onLink={handleLink}
+            onOpenReading={onOpenReading}
             onScrollComplete={handleScrollComplete}
           />
         ))}
