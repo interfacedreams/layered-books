@@ -1,8 +1,5 @@
 import clsx from "clsx"
-import {
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react"
+import { ChevronDown, ChevronRight } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import FloatingMenu from "./FloatingMenu"
 
@@ -23,7 +20,7 @@ interface BulletItemProps {
   onItemClick: (id: string) => void
   onCopy: (text: string) => void
   onLink: (id: string) => void
-  onOpenReading?: (itemId: string) => void
+  onOpenReading?: (itemId: string, level: number) => void
   onScrollComplete?: () => void
 }
 
@@ -94,7 +91,8 @@ export default function OutlineItem({
 
   const handleRead = (e: React.MouseEvent) => {
     e.stopPropagation()
-    onOpenReading?.(item.id)
+    onItemClick(item.id)
+    onOpenReading?.(item.id, item.depth)
   }
 
   return (

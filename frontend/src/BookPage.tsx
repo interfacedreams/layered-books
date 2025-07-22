@@ -55,6 +55,23 @@ export default function BookPage() {
           }
         }
       }
+    } else if (level === 2) {
+      // Level 2: Search in key details
+      let found = false
+      for (const chapter of book.outline.chapters) {
+        if (chapter.keyPoints && !found) {
+          for (const keyPoint of chapter.keyPoints) {
+            if (keyPoint.keyDetails) {
+              const keyDetail = keyPoint.keyDetails.find((kd) => kd.id === itemId)
+              if (keyDetail) {
+                startChunk = keyDetail.textStartChunk
+                found = true
+                break
+              }
+            }
+          }
+        }
+      }
     }
 
     setStartChunkIndex(startChunk)

@@ -61,6 +61,7 @@ export interface OutlineDetail {
   id: string
   text: string
   position: number
+  textStartChunk: number
 }
 
 export interface ApiError {

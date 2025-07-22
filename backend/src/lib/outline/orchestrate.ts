@@ -60,6 +60,8 @@ async function orchestrateChapterOutline(
           sectionText,
           chapter.title,
           section.description,
+          section.startChunk,
+          section.endChunk,
         )
       } catch (error) {
         return []
@@ -130,11 +132,12 @@ export async function orchestrateBookOutline(
       outline.sectionDetails.forEach((details, keyPointIndex) => {
         const keyPointId = chapterKeyPoints[keyPointIndex]!.id
 
-        details.forEach((text, detailIndex) => {
+        details.forEach((detail, detailIndex) => {
           allKeyDetails.push({
             id: generateId(),
             position: detailIndex,
-            text,
+            text: detail.text,
+            textStartChunk: detail.startChunk,
             keyPointId,
           })
         })

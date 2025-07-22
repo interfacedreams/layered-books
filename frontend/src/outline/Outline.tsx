@@ -6,7 +6,7 @@ import { findPathToItem, transformOutlineToItems } from "./utils"
 interface OutlineProps {
   outline: BookOutline
   abstractionLevel?: number
-  onOpenReading?: (itemId: string) => void
+  onOpenReading?: (itemId: string, level: number) => void
 }
 
 export default function Outline({

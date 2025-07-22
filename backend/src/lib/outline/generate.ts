@@ -22,9 +22,16 @@ const chapterOutlineSchema = z.object({
   sections: z.array(semanticSectionSchema).min(3).max(9),
 })
 
+const keyDetailSchema = z.object({
+  text: z.string().describe("1-2 sentence bullet point summary"),
+  startChunk: z
+    .number()
+    .describe("The chunk number where this key detail starts"),
+})
+
 const sectionDetailsSchema = z.object({
-  bulletPoints: z
-    .array(z.string())
+  keyDetails: z
+    .array(keyDetailSchema)
     .min(3)
     .max(7)
     .describe("1-2 sentence bullet point summaries of the section"),
@@ -68,7 +75,9 @@ export async function generateSectionDetails(
   sectionText: string,
   chapterTitle: string,
   sectionDescription: string,
-): Promise<string[]> {
+  startChunk: number,
+  endChunk: number,
+): Promise<{ text: string; startChunk: number }[]> {
   console.log(`🤖 [START] Generate section details for ${sectionDescription}`)
   try {
     const { object } = await generateObject({
@@ -81,6 +90,8 @@ export async function generateSectionDetails(
 Extract 3-7 supporting details that ENRICH and EXPAND on this key point without repeating it. 
 Adjacent key details in this section should also be included.
 
+The text includes chunk markers in the format {{ CHUNK X }}. For each key detail, identify the chunk number where that detail appears, and ensure the startChunk is between ${startChunk} and ${endChunk}.
+
 ${getStyleGuidelines("key details")}
 
 Chapter title: ${chapterTitle}
@@ -89,7 +100,7 @@ Section text: ${sectionText}`,
     })
 
     console.log(`✅ [END] Generate section details for ${sectionDescription}`)
-    return object.bulletPoints
+    return object.keyDetails
   } catch (error) {
     return []
   }

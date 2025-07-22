@@ -75,6 +75,7 @@ export const keyDetailsTable = pgTable(
       .references(() => keyPointsTable.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     text: text("text").notNull(),
+    textStartChunk: integer("textStartChunk").notNull(),
     createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
   },
   (table) => [

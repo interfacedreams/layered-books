@@ -31,7 +31,7 @@ export default function BookPanel({
         key={abstractionLevel}
         outline={book.outline}
         abstractionLevel={abstractionLevel}
-        onOpenReading={(itemId) => onOpenReading(itemId, abstractionLevel)}
+        onOpenReading={onOpenReading}
       />
     </>
   )

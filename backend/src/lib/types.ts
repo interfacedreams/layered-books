@@ -32,7 +32,7 @@ export interface OutlineEntities {
 export interface ChapterOutline extends ChapterWithChunks {
   description: string
   sections: SemanticSection[]
-  sectionDetails: string[][]
+  sectionDetails: { text: string; startChunk: number }[][]
 }
 
 // API response types for structured outline
