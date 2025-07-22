@@ -7,14 +7,6 @@ export interface BookStructure {
   chunks: Chunk[]
 }
 
-// Generation-specific types
-
-export interface SemanticSection {
-  startChunk: number
-  endChunk: number
-  description: string
-}
-
 export interface ChapterWithChunks {
   title: string
   text: string
@@ -29,10 +21,15 @@ export interface OutlineEntities {
   keyDetails: KeyDetail[]
 }
 // Intermediate types (between generation and API response)
+export interface SemanticSection {
+  startChunk: number
+  endChunk: number
+  description: string
+  details: { text: string; startChunk: number }[]
+}
 export interface ChapterOutline extends ChapterWithChunks {
   description: string
   sections: SemanticSection[]
-  sectionDetails: { text: string; startChunk: number }[][]
 }
 
 // API response types for structured outline

@@ -12,11 +12,11 @@ const chapterSchema = z.object({
   endChunk: z.number().describe("The chunk number where this chapter ends"),
 })
 
-type ParsedChapter = z.infer<typeof chapterSchema>
+const chaptersSchema = z.array(chapterSchema).min(1).max(300)
 
-export async function generateChapters(
-  bookText: string,
-): Promise<ParsedChapter[]> {
+type AiChapters = z.infer<typeof chaptersSchema>
+
+export async function generateChapters(bookText: string): Promise<AiChapters> {
   console.log("🤖 [START] Generate chapters")
   try {
     const { object } = await generateObject({
@@ -34,13 +34,12 @@ Guidelines:
 - Chapters should flow sequentially with no gaps or overlaps
 
 Full book text: ${bookText}`,
-      schema: z.object({
-        chapters: z.array(chapterSchema).min(1).max(300),
-      }),
+      schema: chaptersSchema,
     })
     console.log("✅ [END] Generate chapters")
-    return object.chapters
+    return object
   } catch (error) {
+    console.error("❌ [ERROR] Generate chapters", error)
     return []
   }
 }

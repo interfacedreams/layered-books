@@ -116,7 +116,6 @@ export default function PageViewer({
       <div className="flex-shrink-0 p-3 border-b border-gray-200 flex justify-between items-center">
         <div className="text-sm text-gray-600">
           Section {currentSectionIndex + 1} of {sections.length}
-          {startChunkIndex > 0 && ` (from chunk ${startChunkIndex + 1})`}
         </div>
         {onClose && (
           <button

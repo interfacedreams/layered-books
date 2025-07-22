@@ -48,23 +48,23 @@ async function orchestrateChapterOutline(
     chapter.title,
   )
 
-  const sectionDetails = await Promise.all(
+  const sectionsWithDetails = await Promise.all(
     sections.map(async (section) => {
-      try {
-        const sectionText = extractSegmentByChunks(
-          chapter.text,
-          section.startChunk,
-          section.endChunk,
-        )
-        return await generateSectionDetails(
-          sectionText,
-          chapter.title,
-          section.description,
-          section.startChunk,
-          section.endChunk,
-        )
-      } catch (error) {
-        return []
+      const sectionText = extractSegmentByChunks(
+        chapter.text,
+        section.startChunk,
+        section.endChunk,
+      )
+      const details = await generateSectionDetails(
+        sectionText,
+        chapter.title,
+        section.description,
+        section.startChunk,
+        section.endChunk,
+      )
+      return {
+        ...section,
+        details,
       }
     }),
   )
@@ -72,8 +72,7 @@ async function orchestrateChapterOutline(
   return {
     ...chapter,
     description,
-    sections,
-    sectionDetails,
+    sections: sectionsWithDetails,
   }
 }
 
@@ -128,22 +127,21 @@ export async function orchestrateBookOutline(
           chapterId,
         }),
       )
+      allKeyPoints.push(...chapterKeyPoints)
 
-      outline.sectionDetails.forEach((details, keyPointIndex) => {
-        const keyPointId = chapterKeyPoints[keyPointIndex]!.id
-
-        details.forEach((detail, detailIndex) => {
-          allKeyDetails.push({
+      const keyDetails = outline.sections.flatMap((section, sectionIndex) => {
+        const keyPointId = chapterKeyPoints[sectionIndex]!.id
+        return section.details.map((detail, detailIndex) => {
+          return {
             id: generateId(),
             position: detailIndex,
             text: detail.text,
             textStartChunk: detail.startChunk,
             keyPointId,
-          })
+          }
         })
       })
-
-      allKeyPoints.push(...chapterKeyPoints)
+      allKeyDetails.push(...keyDetails)
     }),
   )
 

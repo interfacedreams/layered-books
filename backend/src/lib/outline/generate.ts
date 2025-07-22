@@ -1,7 +1,6 @@
 import { google } from "@ai-sdk/google"
 import { generateObject } from "ai"
 import { z } from "zod"
-import type { SemanticSection } from "../types"
 
 const semanticSectionSchema = z.object({
   startChunk: z
@@ -22,6 +21,8 @@ const chapterOutlineSchema = z.object({
   sections: z.array(semanticSectionSchema).min(3).max(9),
 })
 
+type AiChapterOutline = z.infer<typeof chapterOutlineSchema>
+
 const keyDetailSchema = z.object({
   text: z.string().describe("1-2 sentence bullet point summary"),
   startChunk: z
@@ -29,18 +30,18 @@ const keyDetailSchema = z.object({
     .describe("The chunk number where this key detail starts"),
 })
 
-const sectionDetailsSchema = z.object({
-  keyDetails: z
-    .array(keyDetailSchema)
-    .min(3)
-    .max(7)
-    .describe("1-2 sentence bullet point summaries of the section"),
-})
+const sectionDetailsSchema = z
+  .array(keyDetailSchema)
+  .min(3)
+  .max(7)
+  .describe("1-2 sentence bullet point summaries of the section")
+
+type AiSectionDetails = z.infer<typeof sectionDetailsSchema>
 
 export async function generateChapterOutline(
   chapterText: string,
   chapterTitle: string,
-): Promise<{ description: string; sections: SemanticSection[] }> {
+): Promise<AiChapterOutline> {
   // Skip if chapter text is too short (less than 500 characters, ~100 words)
   if (!chapterText || chapterText.trim().length < 500) {
     return { description: "", sections: [] }
@@ -67,6 +68,10 @@ Text: ${chapterText}`,
     console.log(`✅ [END] Generate chapter outline for ${chapterTitle}`)
     return object
   } catch (error) {
+    console.error(
+      `❌ [ERROR] Generate chapter outline for ${chapterTitle}`,
+      error,
+    )
     return { description: "", sections: [] }
   }
 }
@@ -77,7 +82,7 @@ export async function generateSectionDetails(
   sectionDescription: string,
   startChunk: number,
   endChunk: number,
-): Promise<{ text: string; startChunk: number }[]> {
+): Promise<AiSectionDetails> {
   console.log(`🤖 [START] Generate section details for ${sectionDescription}`)
   try {
     const { object } = await generateObject({
@@ -100,8 +105,12 @@ Section text: ${sectionText}`,
     })
 
     console.log(`✅ [END] Generate section details for ${sectionDescription}`)
-    return object.keyDetails
+    return object
   } catch (error) {
+    console.error(
+      `❌ [ERROR] Generate section details for ${sectionDescription}`,
+      error,
+    )
     return []
   }
 }
