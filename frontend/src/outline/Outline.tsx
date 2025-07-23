@@ -6,8 +6,10 @@ import { findPathToItem, transformOutlineToItems } from "./utils"
 interface OutlineProps {
   outline: BookOutline
   abstractionLevel?: number
-  onOpenReading?: (itemId: string, level: number) => void
+  onOpenReading: (itemId: string) => void
   isSplitViewOpen: boolean
+  currentItemId: string | null
+  setCurrentItemId: (id: string | null) => void
 }
 
 export default function Outline({
@@ -15,8 +17,9 @@ export default function Outline({
   abstractionLevel = 1,
   onOpenReading,
   isSplitViewOpen,
+  currentItemId,
+  setCurrentItemId,
 }: OutlineProps) {
-  const [currentHash, setCurrentHash] = useState<string | null>(null)
   const [expansionPath, setExpansionPath] = useState<string[]>([])
   const [shouldScroll, setShouldScroll] = useState(false)
   const items = transformOutlineToItems(outline)
@@ -24,7 +27,8 @@ export default function Outline({
   useEffect(() => {
     const handleHashChange = () => {
       const newHash = window.location.hash.substring(1) || null
-      setCurrentHash(newHash)
+      setCurrentItemId(newHash)
+
       const path = newHash ? findPathToItem(outline, newHash) : []
       setExpansionPath(path)
       setShouldScroll(!!newHash)
@@ -33,7 +37,7 @@ export default function Outline({
     handleHashChange()
     window.addEventListener("hashchange", handleHashChange)
     return () => window.removeEventListener("hashchange", handleHashChange)
-  }, [outline])
+  }, [outline, setCurrentItemId])
 
   const handleCopy = async (text: string) => {
     try {
@@ -43,11 +47,10 @@ export default function Outline({
     }
   }
 
-  const handleItemClick = (id: string, level: number) => {
+  const handleItemClick = (id: string) => {
     window.location.hash = id
-
     if (isSplitViewOpen && onOpenReading) {
-      onOpenReading(id, level)
+      onOpenReading(id)
     }
   }
 
@@ -73,7 +76,7 @@ export default function Outline({
             key={item.id}
             item={item}
             maxDepthExclusive={abstractionLevel}
-            selectedItemId={currentHash}
+            selectedItemId={currentItemId}
             expansionPath={expansionPath}
             shouldScroll={shouldScroll}
             onItemClick={handleItemClick}

@@ -12,6 +12,7 @@ export default function BookPage() {
   const [abstractionLevel, setAbstractionLevel] = useState(0)
   const [isSplitViewOpen, setIsSplitViewOpen] = useState(false)
   const [startChunkIndex, setStartChunkIndex] = useState(0)
+  const [currentItemId, setCurrentItemId] = useState<string | null>(null)
 
   const {
     data: book,
@@ -30,59 +31,61 @@ export default function BookPage() {
     const currentHash = window.location.hash.substring(1)
     if (currentHash) {
       window.location.hash = ""
+      setCurrentItemId(null)
     }
   }
 
-  const handleOpenReading = (itemId: string, level: number) => {
+  const handleOpenReading = (itemId: string) => {
     if (!book) return
 
-    let startChunk = 0
+    // Level 0: Search only in chapters
+    const chapter = book.outline.chapters.find((ch) => ch.id === itemId)
+    if (chapter) {
+      setStartChunkIndex(chapter.textStartChunk)
+      setIsSplitViewOpen(true)
+      return
+    }
 
-    if (level === 0) {
-      // Level 0: Search only in chapters
-      const chapter = book.outline.chapters.find((ch) => ch.id === itemId)
-      if (chapter) {
-        startChunk = chapter.textStartChunk
-      }
-    } else if (level === 1) {
-      // Level 1: Search in key points
-      for (const chapter of book.outline.chapters) {
-        if (chapter.keyPoints) {
-          const keyPoint = chapter.keyPoints.find((kp) => kp.id === itemId)
-          if (keyPoint) {
-            startChunk = keyPoint.textStartChunk
-            break
-          }
+    // Level 1: Search in key points
+    for (const chapter of book.outline.chapters) {
+      if (chapter.keyPoints) {
+        const keyPoint = chapter.keyPoints.find((kp) => kp.id === itemId)
+        if (keyPoint) {
+          setStartChunkIndex(keyPoint.textStartChunk)
+          setIsSplitViewOpen(true)
+          return
         }
       }
-    } else if (level === 2) {
-      // Level 2: Search in key details
-      let found = false
-      for (const chapter of book.outline.chapters) {
-        if (chapter.keyPoints && !found) {
-          for (const keyPoint of chapter.keyPoints) {
-            if (keyPoint.keyDetails) {
-              const keyDetail = keyPoint.keyDetails.find(
-                (kd) => kd.id === itemId
-              )
-              if (keyDetail) {
-                startChunk = keyDetail.textStartChunk
-                found = true
-                break
-              }
+    }
+    // Level 2: Search in key details
+    for (const chapter of book.outline.chapters) {
+      if (chapter.keyPoints) {
+        for (const keyPoint of chapter.keyPoints) {
+          if (keyPoint.keyDetails) {
+            const keyDetail = keyPoint.keyDetails.find((kd) => kd.id === itemId)
+            if (keyDetail) {
+              setStartChunkIndex(keyDetail.textStartChunk)
+              setIsSplitViewOpen(true)
+              return
             }
           }
         }
       }
     }
-
-    setStartChunkIndex(startChunk)
-    setIsSplitViewOpen(true)
   }
 
   const handleCloseSplitView = () => {
     setIsSplitViewOpen(false)
     setStartChunkIndex(0)
+  }
+  const handleSplitViewClick = () => {
+    if (currentItemId) {
+      handleOpenReading(currentItemId)
+    } else {
+      if (!book) return
+      const firstItemId = book.outline.chapters[0].id
+      handleOpenReading(firstItemId)
+    }
   }
 
   if (isLoading) {
@@ -113,7 +116,10 @@ export default function BookPage() {
               abstractionLevel={abstractionLevel}
               onAbstractionLevelChange={handleAbstractionLevelChange}
               onOpenReading={handleOpenReading}
+              onSplitViewClick={handleSplitViewClick}
               isSplitViewOpen={isSplitViewOpen}
+              currentItemId={currentItemId}
+              setCurrentItemId={setCurrentItemId}
             />
           </div>
         </div>
@@ -138,7 +144,10 @@ export default function BookPage() {
         abstractionLevel={abstractionLevel}
         onAbstractionLevelChange={handleAbstractionLevelChange}
         onOpenReading={handleOpenReading}
+        onSplitViewClick={handleSplitViewClick}
         isSplitViewOpen={false}
+        currentItemId={currentItemId}
+        setCurrentItemId={setCurrentItemId}
       />
     </div>
   )
