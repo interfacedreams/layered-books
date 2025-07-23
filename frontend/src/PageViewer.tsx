@@ -79,7 +79,7 @@ export default function PageViewer({
     setSections(sectionList)
 
     // Find starting section based on startChunkIndex
-    const startPosition = positions[startChunkIndex] || 0
+    const startPosition = positions[startChunkIndex] ?? 0
     let charCount = 0
     let startSection = 0
 
@@ -108,7 +108,7 @@ export default function PageViewer({
     )
   }
 
-  const displayText = sections[currentSectionIndex] || ""
+  const displayText = sections[currentSectionIndex] ?? ""
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -116,7 +116,6 @@ export default function PageViewer({
       <div className="flex-shrink-0 p-3 border-b border-gray-200 flex justify-between items-center">
         <div className="text-sm">
           Section {currentSectionIndex + 1} of {sections.length}
-          {startChunkIndex > 0 && ` (from chunk ${startChunkIndex + 1})`}
         </div>
         {onClose && (
           <button
@@ -150,12 +149,12 @@ export default function PageViewer({
         </button>
 
         {/* Book content - fixed height, no scrolling */}
-        <div className="h-full flex flex-col items-center pt-20 px-8">
-          <div className="w-xl">
+        <div className="h-full flex flex-col items-center pt-20">
+          <div className="w-xl px-12">
             <div
               className="text-gray-900 leading-relaxed whitespace-pre-wrap text-lg font-serif"
               style={{
-                fontSize: "18px",
+                fontSize: "16px",
                 lineHeight: "1.6",
                 fontFamily: "Georgia, serif",
               }}

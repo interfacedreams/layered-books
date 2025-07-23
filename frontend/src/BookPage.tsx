@@ -87,7 +87,7 @@ export default function BookPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
+      <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-5 w-5 animate-spin" />
       </div>
     )

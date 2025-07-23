@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Loader2, Upload } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useDropzone } from "react-dropzone"
 import { fetchUsersBooks, uploadBook } from "./api/books"
 import BookPreview from "./BookPreview"
@@ -91,10 +91,8 @@ export default function Home() {
         } ${uploadMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
       >
         <input {...getInputProps()} />
-        {uploadMutation.isPending ? (
+        {uploadMutation.isPending && (
           <Loader2 className="h-8 w-8 mb-3 text-sky-500 animate-spin" />
-        ) : (
-          <Upload className="h-8 w-8 mb-3 text-sky-500" />
         )}
         <div className="text-center">
           <span className="font-bold text-lg text-gray-900">
