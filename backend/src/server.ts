@@ -5,13 +5,15 @@ import book from "./routes/book"
 const app = new Hono()
 const PORT = process.env.PORT ?? 3000
 
+const allowedOrigins = ["http://localhost:5173"]
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL)
+}
+
 app.use(
   "*",
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://frontend-layered-books-production.up.railway.app",
-    ],
+    origin: allowedOrigins,
     credentials: true,
   }),
 )
