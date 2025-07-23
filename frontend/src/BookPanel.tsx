@@ -7,6 +7,7 @@ interface BookPanelProps {
   abstractionLevel: number
   onAbstractionLevelChange: (newLevel: number) => void
   onOpenReading: (itemId: string, level: number) => void
+  isSplitViewOpen: boolean
 }
 
 export default function BookPanel({
@@ -14,6 +15,7 @@ export default function BookPanel({
   abstractionLevel,
   onAbstractionLevelChange,
   onOpenReading,
+  isSplitViewOpen,
 }: BookPanelProps) {
   return (
     <>
@@ -32,6 +34,7 @@ export default function BookPanel({
         outline={book.outline}
         abstractionLevel={abstractionLevel}
         onOpenReading={onOpenReading}
+        isSplitViewOpen={isSplitViewOpen}
       />
     </>
   )

@@ -17,10 +17,10 @@ interface BulletItemProps {
   selectedItemId: string | null
   expansionPath: string[]
   shouldScroll: boolean
-  onItemClick: (id: string) => void
+  onItemClick: (id: string, level: number) => void
   onCopy: (text: string) => void
   onLink: (id: string) => void
-  onOpenReading?: (itemId: string, level: number) => void
+  onOpenReading?: (id: string, level: number) => void
   onScrollComplete?: () => void
 }
 
@@ -76,7 +76,7 @@ export default function OutlineItem({
       userClickedRef.current = true
       setIsExpanded(!isExpanded)
     }
-    onItemClick(item.id)
+    onItemClick(item.id, item.depth)
   }
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -91,7 +91,7 @@ export default function OutlineItem({
 
   const handleRead = (e: React.MouseEvent) => {
     e.stopPropagation()
-    onItemClick(item.id)
+    onItemClick(item.id, item.depth)
     onOpenReading?.(item.id, item.depth)
   }
 

@@ -3,15 +3,15 @@ import { generateObject } from "ai"
 import { z } from "zod"
 
 const semanticSectionSchema = z.object({
+  description: z
+    .string()
+    .describe("One sentence description of what this section covers."),
   startChunk: z
     .number()
     .describe("The chunk number where this semantic section starts"),
   endChunk: z
     .number()
     .describe("The chunk number where this semantic section ends"),
-  description: z
-    .string()
-    .describe("One sentence description of what this section covers."),
 })
 
 const chapterOutlineSchema = z.object({

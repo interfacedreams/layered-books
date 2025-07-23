@@ -7,12 +7,14 @@ interface OutlineProps {
   outline: BookOutline
   abstractionLevel?: number
   onOpenReading?: (itemId: string, level: number) => void
+  isSplitViewOpen: boolean
 }
 
 export default function Outline({
   outline,
   abstractionLevel = 1,
   onOpenReading,
+  isSplitViewOpen,
 }: OutlineProps) {
   const [currentHash, setCurrentHash] = useState<string | null>(null)
   const [expansionPath, setExpansionPath] = useState<string[]>([])
@@ -41,8 +43,12 @@ export default function Outline({
     }
   }
 
-  const handleItemClick = (id: string) => {
+  const handleItemClick = (id: string, level: number) => {
     window.location.hash = id
+
+    if (isSplitViewOpen && onOpenReading) {
+      onOpenReading(id, level)
+    }
   }
 
   const handleScrollComplete = () => {

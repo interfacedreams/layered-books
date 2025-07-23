@@ -113,6 +113,7 @@ export default function BookPage() {
               abstractionLevel={abstractionLevel}
               onAbstractionLevelChange={handleAbstractionLevelChange}
               onOpenReading={handleOpenReading}
+              isSplitViewOpen={isSplitViewOpen}
             />
           </div>
         </div>
@@ -137,6 +138,7 @@ export default function BookPage() {
         abstractionLevel={abstractionLevel}
         onAbstractionLevelChange={handleAbstractionLevelChange}
         onOpenReading={handleOpenReading}
+        isSplitViewOpen={false}
       />
     </div>
   )
