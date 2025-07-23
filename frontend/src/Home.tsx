@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Loader2, Upload } from "lucide-react"
 import { useDropzone } from "react-dropzone"
-import { fetchUsersBooks } from "./api/books"
+import { fetchUsersBooks, uploadBook } from "./api/books"
 import BookPreview from "./BookPreview"
 import { getSessionId } from "./utils"
 
@@ -12,6 +12,8 @@ interface Book {
 }
 
 export default function Home() {
+  const queryClient = useQueryClient()
+
   const {
     data: booksData,
     isLoading,
@@ -21,10 +23,18 @@ export default function Home() {
     queryFn: () => fetchUsersBooks(getSessionId()),
   })
 
+  const uploadMutation = useMutation({
+    mutationFn: (file: File) => uploadBook(file, getSessionId()),
+    onSuccess: () => {
+      // Invalidate and refetch books after successful upload
+      queryClient.invalidateQueries({ queryKey: ["allBooks"] })
+    },
+  })
+
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0]
-      console.log("Selected file:", file)
+      uploadMutation.mutate(file)
     }
   }
 
@@ -34,6 +44,7 @@ export default function Home() {
       "application/epub+zip": [".epub"],
     },
     multiple: false,
+    disabled: uploadMutation.isPending,
   })
 
   const exampleBooks: Book[] = [
@@ -64,7 +75,7 @@ export default function Home() {
 
   if (error || !booksData) {
     console.error("Error loading books:", error)
-    return <></>
+    return null
   }
 
   return (
@@ -77,17 +88,34 @@ export default function Home() {
         {...getRootProps()}
         className={`w-full h-32 flex flex-col items-center justify-center cursor-pointer mb-8 rounded-lg transition-all bg-sky-50 border-2 border-dashed border-gray-300 ${
           isDragActive ? "border-gray-400 bg-sky-100" : ""
-        }`}
+        } ${uploadMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
       >
         <input {...getInputProps()} />
+        {uploadMutation.isPending ? (
+          <Loader2 className="h-8 w-8 mb-3 text-sky-500 animate-spin" />
+        ) : (
+          <Upload className="h-8 w-8 mb-3 text-sky-500" />
+        )}
         <div className="text-center">
           <span className="font-bold text-lg text-gray-900">
-            Drag and drop or{" "}
-            <span className="text-sky-500">Click to upload</span>
+            {uploadMutation.isPending
+              ? "Uploading..."
+              : isDragActive
+              ? "Drop EPUB here"
+              : "Drag and drop or "}
+            {!uploadMutation.isPending && !isDragActive && (
+              <span className="text-sky-500">Click to upload</span>
+            )}
           </span>
           <p className="text-sm text-gray-500 mt-1">
-            Generating an outline usually takes ~2 mins
+            {!uploadMutation.isPending &&
+              "Generating an outline usually takes ~2 mins"}
           </p>
+          {uploadMutation.isError && (
+            <p className="text-sm text-red-500 mt-1">
+              Upload failed. Please try again.
+            </p>
+          )}
         </div>
       </div>
 

@@ -10,7 +10,7 @@ export default function BookPreview({ id, title, author }: BookLinkProps) {
   return (
     <Link
       to={`/book/${id}`}
-      className="relative group rounded-lg px-2 py-2 transition-colors flex-1 text-left cursor-pointer hover:bg-sky-200 hover:shadow-md bg-sky-100 block mb-2 h-20"
+      className="relative group rounded-lg px-2 py-2 transition-colors flex-1 text-left cursor-pointer hover:bg-sky-200 bg-sky-100 block mb-2 h-20"
     >
       <div className="flex items-start gap-2 h-full">
         <span className="text-gray-600 text-sm mt-0.5 flex-shrink-0">→</span>

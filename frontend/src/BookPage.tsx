@@ -62,7 +62,9 @@ export default function BookPage() {
         if (chapter.keyPoints && !found) {
           for (const keyPoint of chapter.keyPoints) {
             if (keyPoint.keyDetails) {
-              const keyDetail = keyPoint.keyDetails.find((kd) => kd.id === itemId)
+              const keyDetail = keyPoint.keyDetails.find(
+                (kd) => kd.id === itemId
+              )
               if (keyDetail) {
                 startChunk = keyDetail.textStartChunk
                 found = true
@@ -105,7 +107,7 @@ export default function BookPage() {
       <div className="h-screen flex">
         {/* Left panel - Outline */}
         <div className="w-1/2 border-r border-gray-200 overflow-y-auto">
-          <div className="p-6 pl-40 pr-16">
+          <div className="p-6 pl-20 pr-4">
             <BookPanel
               book={book}
               abstractionLevel={abstractionLevel}

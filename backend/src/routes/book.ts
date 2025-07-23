@@ -21,9 +21,13 @@ import type {
 const app = new Hono()
 
 app.post("/summarize", async (c) => {
+  const sessionId = c.req.header("x-session-id") // an id that is unique to the user's browser
+
+  if (sessionId === undefined || typeof sessionId !== "string") {
+    return c.json({ error: "Session ID is required" }, 400)
+  }
   const formData = await c.req.formData()
   const fileEntry = formData.get("file")
-  const sessionId = formData.get("sessionId")
 
   if (!fileEntry || !(fileEntry instanceof File)) {
     return c.json({ error: "No file uploaded" }, 400)

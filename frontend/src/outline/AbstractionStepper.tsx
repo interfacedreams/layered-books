@@ -23,11 +23,7 @@ export default function AbstractionStepper({
             onClick={() => onChange(option.level)}
             className={`
               px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer
-              ${
-                value === option.level
-                  ? "bg-white shadow-sm"
-                  : "hover:bg-white hover:shadow-sm"
-              }
+              ${value === option.level ? "bg-white" : "hover:bg-white"}
             `}
             title={option.description}
           >

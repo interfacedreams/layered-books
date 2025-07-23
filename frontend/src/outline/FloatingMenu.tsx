@@ -1,4 +1,3 @@
-import clsx from "clsx"
 import { BookOpenText, Copy, Link } from "lucide-react"
 
 interface FloatingMenuProps {
@@ -33,14 +32,8 @@ export default function FloatingMenu({
     },
     {
       id: "read",
-      content: (
-        <>
-          <BookOpenText size={14} />
-          Read
-        </>
-      ),
+      content: <BookOpenText size={16} />,
       title: "Read from here",
-      className: "flex items-center gap-1.5",
       onClick: onRead,
     },
   ]
@@ -48,7 +41,7 @@ export default function FloatingMenu({
     <>
       {showIcons && (
         <div
-          className="absolute left-0 top-0 mt-1 transform -translate-x-full -ml-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          className="absolute left-0 top-0 mt-1 transform -translate-x-full -ml-1 flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
         >
@@ -57,10 +50,7 @@ export default function FloatingMenu({
               key={action.id}
               type="button"
               onClick={action.onClick}
-              className={clsx(
-                action.className,
-                "px-1.5 py-1.5 h-7 bg-sky-100 hover:bg-sky-200 hover:cursor-pointer hover:shadow-md rounded-md transition-colors"
-              )}
+              className="px-1 py-1 h-7 hover:bg-sky-100 hover:cursor-pointer rounded-md transition-colors"
               title={action.title}
             >
               {action.content}

@@ -53,3 +53,28 @@ export const fetchUsersBooks = async (
   }
   return response.json()
 }
+
+export const uploadBook = async (
+  file: File,
+  sessionId: string,
+): Promise<BookPreview> => {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/book/summarize`,
+    {
+      method: "POST",
+      headers: {
+        "x-session-id": sessionId,
+      },
+      body: formData,
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload book: ${response.statusText}`)
+  }
+
+  return response.json()
+}
