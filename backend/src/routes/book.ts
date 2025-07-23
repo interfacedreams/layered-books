@@ -1,10 +1,8 @@
 import { unlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { eq } from "drizzle-orm"
 import { Hono } from "hono"
-import { db } from "../lib/db"
-import { booksTable } from "../lib/db/schema"
+import { countUserBooks, fetchUserBooks } from "../lib/book"
 import {
   getOutline,
   orchestrateBookOutline,
@@ -49,6 +47,14 @@ app.post("/summarize", async (c) => {
           type: fileEntry.type,
         },
       },
+      400,
+    )
+  }
+
+  const count = await countUserBooks(sessionId)
+  if (count >= 10) {
+    return c.json(
+      { error: "You have reached the maximum number of books" },
       400,
     )
   }
@@ -156,16 +162,7 @@ app.get("/all", async (c) => {
       return c.json({ error: "Session ID is required" }, 400)
     }
 
-    const books = await db
-      .select({
-        id: booksTable.id,
-        title: booksTable.title,
-        author: booksTable.author,
-      })
-      .from(booksTable)
-      .where(eq(booksTable.sessionId, sessionId))
-      .orderBy(booksTable.createdAt)
-
+    const books = await fetchUserBooks(sessionId)
     return c.json(books)
   } catch (error) {
     if (error instanceof Error) {
