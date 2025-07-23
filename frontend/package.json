@@ -32,6 +32,8 @@
     "vite": "^7.0.4"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "*"
+    "@rollup/rollup-linux-x64-gnu": "*",
+    "lightningcss-linux-x64-gnu": "*",
+    "@biomejs/biome-linux-x64": "*"
   }
 }
