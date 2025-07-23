@@ -104,8 +104,8 @@ export default function OutlineItem({
           type="button"
           className={clsx(
             "relative group rounded-lg px-2 transition-colors flex-1 text-left cursor-pointer",
-            "hover:bg-gray-100 hover:shadow-md",
-            (isSelected || isItemHovered) && "bg-gray-100",
+            "hover:bg-sky-100 hover:shadow-md",
+            (isSelected || isItemHovered) && "bg-sky-100",
             isChapter ? "py-3" : "py-1"
           )}
           onClick={handleClick}

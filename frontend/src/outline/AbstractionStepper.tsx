@@ -15,7 +15,7 @@ export default function AbstractionStepper({
 
   return (
     <div className="mb-4">
-      <div className="flex bg-gray-100 p-1 gap-1 rounded-lg w-fit">
+      <div className="flex bg-sky-100 p-1 rounded-lg w-fit gap-1">
         {options.map((option) => (
           <button
             key={option.level}
@@ -25,8 +25,8 @@ export default function AbstractionStepper({
               px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer
               ${
                 value === option.level
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-sm"
+                  ? "bg-white shadow-sm"
+                  : "hover:bg-white hover:shadow-sm"
               }
             `}
             title={option.description}

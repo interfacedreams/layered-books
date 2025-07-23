@@ -59,7 +59,7 @@ export default function FloatingMenu({
               onClick={action.onClick}
               className={clsx(
                 action.className,
-                "px-1.5 py-1.5 h-7 bg-sky-200 hover:bg-sky-300 text-gray-700 hover:text-gray-900 hover:cursor-pointer rounded-md transition-colors shadow-md"
+                "px-1.5 py-1.5 h-7 bg-sky-100 hover:bg-sky-200 hover:cursor-pointer hover:shadow-md rounded-md transition-colors"
               )}
               title={action.title}
             >

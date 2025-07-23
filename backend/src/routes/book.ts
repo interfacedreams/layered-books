@@ -118,7 +118,7 @@ app.post("/summarize", async (c) => {
     } catch (saveError) {
       return c.json(
         {
-          error: "Failed to save outline",
+          error: `Failed to save outline: ${saveError}`,
           details: `Could not save the generated outline to the database: ${saveError}`,
         },
         500,

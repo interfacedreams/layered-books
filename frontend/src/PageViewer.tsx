@@ -114,14 +114,15 @@ export default function PageViewer({
     <div className="h-full flex flex-col bg-white">
       {/* Header with section info and close button */}
       <div className="flex-shrink-0 p-3 border-b border-gray-200 flex justify-between items-center">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm">
           Section {currentSectionIndex + 1} of {sections.length}
+          {startChunkIndex > 0 && ` (from chunk ${startChunkIndex + 1})`}
         </div>
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white shadow-sm hover:shadow-sm hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center justify-center border border-gray-100"
+            className="w-8 h-8 rounded-full bg-white shadow-lg hover:shadow-xl hover:bg-sky-100 transition-all duration-200 cursor-pointer flex items-center justify-center border border-gray-100"
           >
             <X size={16} className="text-gray-700" />
           </button>
@@ -135,7 +136,7 @@ export default function PageViewer({
           type="button"
           onClick={handlePrevSection}
           disabled={currentSectionIndex === 0}
-          className="absolute left-6 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-sm hover:shadow-sm hover:bg-gray-100 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center border border-gray-100"
+          className="absolute left-6 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-lg hover:shadow-xl hover:bg-sky-100 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center border border-gray-100"
         >
           <ChevronLeft size={20} className="text-gray-700" />
         </button>
@@ -144,7 +145,7 @@ export default function PageViewer({
           type="button"
           onClick={handleNextSection}
           disabled={currentSectionIndex === sections.length - 1}
-          className="absolute right-6 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-sm hover:shadow-sm hover:bg-gray-100 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center border border-gray-100"
+          className="absolute right-6 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-lg hover:shadow-xl hover:bg-sky-100 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center border border-gray-100"
         >
           <ChevronRight size={20} className="text-gray-700" />
         </button>
