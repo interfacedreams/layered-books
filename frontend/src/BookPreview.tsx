@@ -6,7 +6,7 @@ interface BookLinkProps {
   author: string
 }
 
-export default function BookLink({ id, title, author }: BookLinkProps) {
+export default function BookPreview({ id, title, author }: BookLinkProps) {
   return (
     <Link
       to={`/book/${id}`}

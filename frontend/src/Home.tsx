@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
+import { useDropzone } from "react-dropzone"
 import { fetchUsersBooks } from "./api/books"
-import BookLink from "./BookLink"
+import BookPreview from "./BookPreview"
 import { getSessionId } from "./utils"
 
 interface Book {
@@ -18,6 +19,21 @@ export default function Home() {
   } = useQuery({
     queryKey: ["allBooks"],
     queryFn: () => fetchUsersBooks(getSessionId()),
+  })
+
+  const onDrop = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0]
+      console.log("Selected file:", file)
+    }
+  }
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "application/epub+zip": [".epub"],
+    },
+    multiple: false,
   })
 
   const exampleBooks: Book[] = [
@@ -53,6 +69,28 @@ export default function Home() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
+      {/* Upload Section */}
+      <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">
+        Generate a layered book from your EPUB
+      </h3>
+      <div
+        {...getRootProps()}
+        className={`w-full h-32 flex flex-col items-center justify-center cursor-pointer mb-8 rounded-lg transition-all bg-sky-50 border-2 border-dashed border-gray-300 ${
+          isDragActive ? "border-gray-400 bg-sky-100" : ""
+        }`}
+      >
+        <input {...getInputProps()} />
+        <div className="text-center">
+          <span className="font-bold text-lg text-gray-900">
+            Drag and drop or{" "}
+            <span className="text-sky-500">Click to upload</span>
+          </span>
+          <p className="text-sm text-gray-500 mt-1">
+            Generating an outline usually takes ~2 mins
+          </p>
+        </div>
+      </div>
+
       <div className="flex justify-between gap-4">
         {/* User Books - Left Column */}
         <div className="flex-1">
@@ -62,7 +100,7 @@ export default function Home() {
           <div>
             {booksData.length > 0 ? (
               booksData.map((book) => (
-                <BookLink
+                <BookPreview
                   key={book.id}
                   id={book.id}
                   title={book.title}
@@ -82,7 +120,7 @@ export default function Home() {
           </h3>
           <div>
             {exampleBooks.map((book) => (
-              <BookLink
+              <BookPreview
                 key={book.id}
                 id={book.id}
                 title={book.title}
