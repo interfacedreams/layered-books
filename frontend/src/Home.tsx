@@ -99,7 +99,7 @@ export default function Home() {
           </span>
           <p className="text-sm text-gray-500 mt-1">
             {!uploadMutation.isPending &&
-              "Generating an outline usually takes ~2 mins"}
+              "Generating the book outline usually takes ~2 mins"}
           </p>
           {uploadMutation.isError && (
             <p className="text-sm text-red-500 mt-1">
