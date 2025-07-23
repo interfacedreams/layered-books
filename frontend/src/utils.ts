@@ -1,6 +1,6 @@
 export const getSessionId = (): string => {
   if (import.meta.env.VITE_NODE_ENV === "development") {
-    return "0"
+    return "1"
   }
 
   let sessionId = localStorage.getItem("aperture-session-id")

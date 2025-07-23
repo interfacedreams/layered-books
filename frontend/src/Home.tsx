@@ -1,4 +1,8 @@
+import { useQuery } from "@tanstack/react-query"
+import { Loader2 } from "lucide-react"
+import { fetchUsersBooks } from "./api/books"
 import BookLink from "./BookLink"
+import { getSessionId } from "./utils"
 
 interface Book {
   id: string
@@ -7,6 +11,15 @@ interface Book {
 }
 
 export default function Home() {
+  const {
+    data: booksData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["allBooks"],
+    queryFn: () => fetchUsersBooks(getSessionId()),
+  })
+
   const exampleBooks: Book[] = [
     {
       id: "x0386j3qtvzc",
@@ -25,23 +38,18 @@ export default function Home() {
     },
   ]
 
-  const userBooks: Book[] = [
-    {
-      id: "user-1",
-      title: "My Personal Journal",
-      author: "You",
-    },
-    {
-      id: "user-2",
-      title: "Project Notes",
-      author: "You",
-    },
-    {
-      id: "user-3",
-      title: "Reading List",
-      author: "You",
-    },
-  ]
+  if (isLoading) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto">
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error || !booksData) {
+    console.error("Error loading books:", error)
+    return <></>
+  }
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -52,14 +60,18 @@ export default function Home() {
             Your Books
           </h3>
           <div>
-            {userBooks.map((book) => (
-              <BookLink
-                key={book.id}
-                id={book.id}
-                title={book.title}
-                author={book.author}
-              />
-            ))}
+            {booksData.length > 0 ? (
+              booksData.map((book) => (
+                <BookLink
+                  key={book.id}
+                  id={book.id}
+                  title={book.title}
+                  author={book.author}
+                />
+              ))
+            ) : (
+              <p className="text-gray-500">No books uploaded yet</p>
+            )}
           </div>
         </div>
 

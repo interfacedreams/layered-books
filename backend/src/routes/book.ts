@@ -1,7 +1,10 @@
 import { unlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { eq } from "drizzle-orm"
 import { Hono } from "hono"
+import { db } from "../lib/db"
+import { booksTable } from "../lib/db/schema"
 import {
   getOutline,
   orchestrateBookOutline,
@@ -138,6 +141,33 @@ app.post("/summarize", async (c) => {
     })
   } finally {
     await unlink(tempFilePath).catch(() => {})
+  }
+})
+
+app.get("/all", async (c) => {
+  try {
+    const sessionId = c.req.header("x-session-id") // an id that is unique to the user's browser
+
+    if (sessionId === undefined || typeof sessionId !== "string") {
+      return c.json({ error: "Session ID is required" }, 400)
+    }
+
+    const books = await db
+      .select({
+        id: booksTable.id,
+        title: booksTable.title,
+        author: booksTable.author,
+      })
+      .from(booksTable)
+      .where(eq(booksTable.sessionId, sessionId))
+      .orderBy(booksTable.createdAt)
+
+    return c.json(books)
+  } catch (error) {
+    if (error instanceof Error) {
+      return c.json({ error: `Failed to fetch books: ${error.message}` }, 500)
+    }
+    return c.json({ error: "Failed to fetch books" }, 500)
   }
 })
 
