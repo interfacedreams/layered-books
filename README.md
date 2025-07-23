@@ -8,4 +8,4 @@ Layers:
 - Layer 2: key points for each chapter
 - Layer 3: key details for each key point
 
-![Demo](./public/demo.png)
+![Demo](./frontend/public/demo.png)
