@@ -49,31 +49,23 @@ export default function Home() {
 
   const exampleBooks: Book[] = [
     {
-      id: "x0386j3qtvzc",
+      id: "mla2bj6zmg41",
       title: "The Varieties of Religious Experience: A Study in Human Nature",
       author: "William James",
     },
     {
-      id: "8rnttj54y140",
+      id: "ji6vttwhc599",
       title: "The Origin of Species by Means of Natural Selection",
       author: "Charles Darwin",
     },
     {
-      id: "160hfllea4ll",
+      id: "ubc2mpgh6jip",
       title: "The Federalist Papers",
       author: "Alexander Hamilton et al.",
     },
   ]
 
-  if (isLoading) {
-    return (
-      <div className="p-8 max-w-4xl mx-auto">
-        <Loader2 className="h-5 w-5 animate-spin" />
-      </div>
-    )
-  }
-
-  if (error || !booksData) {
+  if (error || (!isLoading && !booksData)) {
     console.error("Error loading books:", error)
     return null
   }
@@ -124,7 +116,11 @@ export default function Home() {
             Your Books
           </h3>
           <div>
-            {booksData.length > 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              </div>
+            ) : booksData && booksData.length > 0 ? (
               booksData.map((book) => (
                 <BookPreview
                   key={book.id}

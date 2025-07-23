@@ -27,8 +27,25 @@ export async function extractRawTextFromEpub(
             if (error) reject(error)
             else {
               const $ = cheerio.load(text)
-              const cleanText = $.text()
-              resolve(cleanText)
+              const paragraphs: string[] = []
+
+              $("p, div:not(:has(p)), h1, h2, h3, h4, h5, h6").each(
+                (_, element) => {
+                  const paragraphText = $(element).text().trim()
+                  if (paragraphText) {
+                    const normalizedText = paragraphText
+                      .replace(/\s+/g, " ")
+                      .replace(/\n+/g, " ")
+                      .replace(/\[pg \d+\]/g, "") // replace epub specific page numbers
+                      .trim()
+                    if (normalizedText.length > 10) {
+                      paragraphs.push(normalizedText)
+                    }
+                  }
+                },
+              )
+
+              resolve(paragraphs.join("\n\n"))
             }
           })
         }),

@@ -15,8 +15,7 @@ export default function PageViewer({
 }: BookViewerProps) {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
   const [sections, setSections] = useState<string[]>([])
-  const MAX_CHARS_PER_SECTION = 2000 // Character limit per section
-  const NEWLINE_CHAR_WEIGHT = 80 // Count newlines as equivalent to 80 characters
+  const MAX_CHARS_PER_SECTION = 900 // Character limit per section
 
   useEffect(() => {
     // Create full text string and chunk position mapping
@@ -27,47 +26,23 @@ export default function PageViewer({
       positions[index] = text.length
       text += chunk.text
       if (index < chunks.length - 1) {
-        text += " " // Add space between chunks
+        text += "\n\n" // Add double newline between chunks for paragraph separation
       }
     })
 
-    // Split full text into sections accounting for newlines
+    // Split text into simple sections by character count
     const sectionList: string[] = []
+    const words = text.split(" ")
     let currentSection = ""
-    let currentCharCount = 0
 
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i]
+    for (const word of words) {
+      const testSection = currentSection + (currentSection ? " " : "") + word
 
-      if (char === "\n") {
-        currentCharCount += NEWLINE_CHAR_WEIGHT
-        currentSection += char
+      if (testSection.length > MAX_CHARS_PER_SECTION && currentSection) {
+        sectionList.push(currentSection.trim())
+        currentSection = word
       } else {
-        currentCharCount += 1
-        currentSection += char
-      }
-
-      // Check if we've reached the section limit
-      if (
-        currentCharCount >= MAX_CHARS_PER_SECTION &&
-        currentSection.length > 0
-      ) {
-        // Try to break at a word boundary
-        let breakPoint = currentSection.length
-        for (
-          let j = currentSection.length - 1;
-          j >= Math.max(0, currentSection.length - 100);
-          j--
-        ) {
-          if (currentSection[j] === " " || currentSection[j] === "\n") {
-            breakPoint = j + 1
-            break
-          }
-        }
-
-        sectionList.push(currentSection.substring(0, breakPoint).trim())
-        currentSection = currentSection.substring(breakPoint)
-        currentCharCount = currentSection.length
+        currentSection = testSection
       }
     }
 
@@ -149,7 +124,7 @@ export default function PageViewer({
         </button>
 
         {/* Book content - fixed height, no scrolling */}
-        <div className="h-full flex flex-col items-center pt-20">
+        <div className="h-full flex flex-col items-center pt-8">
           <div className="w-xl px-12">
             <div
               className="text-gray-900 leading-relaxed whitespace-pre-wrap text-lg font-serif"

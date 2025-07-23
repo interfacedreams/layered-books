@@ -4,7 +4,7 @@ import { extractRawTextFromEpub } from "./epub"
 
 const DEBUG = true
 
-const bookName = "book3.epub"
+const bookName = "book.epub"
 const ASSETS_DIR = join(process.cwd(), "tests/assets")
 const epubPath = join(ASSETS_DIR, bookName)
 
