@@ -27,7 +27,7 @@ export default function BookPanel({
   return (
     <>
       <div className="mb-4">
-        <h1 className={`font-bold mb-1 text-2xl`}>{book.title}</h1>
+        <h1 className={`font-semibold mb-1 text-2xl`}>{book.title}</h1>
         <p className={`mb-4 text-lg`}>By: {book.author}</p>
 
         <div className="flex items-start justify-between">

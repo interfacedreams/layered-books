@@ -49,17 +49,17 @@ export default function Home() {
 
   const exampleBooks: Book[] = [
     {
-      id: "mla2bj6zmg41",
+      id: "pe22wop6o1a7",
       title: "The Varieties of Religious Experience: A Study in Human Nature",
       author: "William James",
     },
     {
-      id: "ji6vttwhc599",
+      id: "lm8ebjbfygk6",
       title: "The Origin of Species by Means of Natural Selection",
       author: "Charles Darwin",
     },
     {
-      id: "ubc2mpgh6jip",
+      id: "iulfuvnhy8wk",
       title: "The Federalist Papers",
       author: "Alexander Hamilton et al.",
     },
@@ -99,7 +99,7 @@ export default function Home() {
           </span>
           <p className="text-sm text-gray-500 mt-1">
             {!uploadMutation.isPending &&
-              "Generating the book outline usually takes ~2 mins"}
+              "Generating the book outline usually takes 1-3 minutes"}
           </p>
           {uploadMutation.isError && (
             <p className="text-sm text-red-500 mt-1">

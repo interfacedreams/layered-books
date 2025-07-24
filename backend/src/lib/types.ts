@@ -12,6 +12,7 @@ export interface ChapterWithChunks {
   text: string
   startChunk: number
   endChunk: number
+  keyPoint: string
 }
 
 export interface OutlineEntities {
@@ -24,11 +25,11 @@ export interface OutlineEntities {
 export interface SemanticSection {
   startChunk: number
   endChunk: number
-  description: string
+  keyPoint: string
   details: { text: string; startChunk: number }[]
 }
 export interface ChapterOutline extends ChapterWithChunks {
-  description: string
+  keyPoint: string
   sections: SemanticSection[]
 }
 

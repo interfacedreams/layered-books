@@ -14,7 +14,7 @@ export async function orchestrateChapters(
 ): Promise<ChapterWithChunks[]> {
   const parsedChapters = await generateChapters(bookText)
 
-  const chapters = parsedChapters.map((chapter) => {
+  const chapters = parsedChapters.chapters.map((chapter) => {
     try {
       const segment = extractSegmentByChunks(
         bookText,
@@ -26,6 +26,7 @@ export async function orchestrateChapters(
         text: segment,
         startChunk: chapter.startChunk,
         endChunk: chapter.endChunk,
+        keyPoint: chapter.keyPoint,
       }
     } catch (error) {
       return {
@@ -33,6 +34,7 @@ export async function orchestrateChapters(
         text: "",
         startChunk: chapter.startChunk,
         endChunk: chapter.endChunk,
+        keyPoint: chapter.keyPoint,
       }
     }
   })
@@ -43,9 +45,10 @@ export async function orchestrateChapters(
 async function orchestrateChapterOutline(
   chapter: ChapterWithChunks,
 ): Promise<ChapterOutline> {
-  const { description, sections } = await generateChapterOutline(
+  const { sections } = await generateChapterOutline(
     chapter.text,
     chapter.title,
+    chapter.keyPoint,
   )
 
   const sectionsWithDetails = await Promise.all(
@@ -55,23 +58,23 @@ async function orchestrateChapterOutline(
         section.startChunk,
         section.endChunk,
       )
-      const details = await generateSectionDetails(
+      const sectionDetails = await generateSectionDetails(
         sectionText,
         chapter.title,
-        section.description,
+        section.keyPoint,
         section.startChunk,
         section.endChunk,
       )
       return {
         ...section,
-        details,
+        details: sectionDetails.details,
       }
     }),
   )
 
   return {
     ...chapter,
-    description,
+    keyPoint: chapter.keyPoint,
     sections: sectionsWithDetails,
   }
 }
@@ -111,7 +114,7 @@ export async function orchestrateBookOutline(
         id: chapterId,
         position: chapterIndex,
         title: chapter.title,
-        description: outline.description,
+        description: outline.keyPoint,
         textStartChunk: chapter.startChunk,
         textEndChunk: chapter.endChunk,
         bookId,
@@ -121,7 +124,7 @@ export async function orchestrateBookOutline(
         (section, index) => ({
           id: generateId(),
           position: index,
-          text: section.description,
+          text: section.keyPoint,
           textStartChunk: section.startChunk,
           textEndChunk: section.endChunk,
           chapterId,

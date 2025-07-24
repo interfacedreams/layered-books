@@ -1,65 +1,63 @@
 import { google } from "@ai-sdk/google"
+import { openai } from "@ai-sdk/openai"
 import { generateObject } from "ai"
 import { z } from "zod"
+import { getKeypointExamples, keyPointStyleGuidelines } from "./style"
 
 const semanticSectionSchema = z.object({
-  description: z
-    .string()
-    .describe("One sentence description of what this section covers."),
+  keyPoint: z.string().describe(keyPointStyleGuidelines("section")),
   startChunk: z
     .number()
-    .describe("The chunk number where this semantic section starts"),
+    .describe("The chunk integer where this semantic section starts"),
   endChunk: z
     .number()
-    .describe("The chunk number where this semantic section ends"),
+    .describe("The chunk integer where this semantic section ends"),
 })
 
 const chapterOutlineSchema = z.object({
-  description: z
-    .string()
-    .describe("One sentence description of what this chapter covers."),
   sections: z.array(semanticSectionSchema).min(3).max(9),
 })
 
 type AiChapterOutline = z.infer<typeof chapterOutlineSchema>
 
 const keyDetailSchema = z.object({
-  text: z.string().describe("1-2 sentence bullet point summary"),
+  text: z.string().describe(keyPointStyleGuidelines("detail")),
   startChunk: z
     .number()
     .describe("The chunk number where this key detail starts"),
 })
 
-const sectionDetailsSchema = z
-  .array(keyDetailSchema)
-  .min(3)
-  .max(7)
-  .describe("1-2 sentence bullet point summaries of the section")
+const sectionDetailsSchema = z.object({
+  details: z.array(keyDetailSchema).min(3).max(7),
+})
 
 type AiSectionDetails = z.infer<typeof sectionDetailsSchema>
 
 export async function generateChapterOutline(
   chapterText: string,
   chapterTitle: string,
+  chapterKeyPoint: string,
 ): Promise<AiChapterOutline> {
   // Skip if chapter text is too short (less than 500 characters, ~100 words)
   if (!chapterText || chapterText.trim().length < 500) {
-    return { description: "", sections: [] }
+    return { sections: [] }
   }
   console.log(`🤖 [START] Generate chapter outline for ${chapterTitle}`)
 
   try {
     const { object } = await generateObject({
-      model: google("gemini-2.5-flash"),
+      // model: google("gemini-2.5-flash"),
+      model: google("gemini-2.5-pro"),
+      // model: openai("gpt-4.1"),
       temperature: 0.3,
-      prompt: `Generate a one sentence description of what this chapter covers and break it into 3-7 semantic sections with complete coverage and no gaps, flowing one after the other.
+      prompt: `Break this chapter into 3-7 semantic sections with complete coverage and no gaps, flowing one after the other.
+Each semantic section has a key point and a start and end chunk number.
+Each section should span one or more complete chunks.
 
-The text includes chunk markers in the format {{ CHUNK X }}. Use these chunk numbers to define the start and end chunks for each semantic section.
-Each section should span one or more complete chunks (paragraphs).
-
-${getStyleGuidelines("chapter descriptions and section descriptions")}
+${getKeypointExamples()}
 
 Chapter: ${chapterTitle}
+Chapter key point: ${chapterKeyPoint}
 
 Text: ${chapterText}`,
       schema: chapterOutlineSchema,
@@ -72,7 +70,7 @@ Text: ${chapterText}`,
       `❌ [ERROR] Generate chapter outline for ${chapterTitle}`,
       error,
     )
-    return { description: "", sections: [] }
+    return { sections: [] }
   }
 }
 
@@ -86,18 +84,18 @@ export async function generateSectionDetails(
   console.log(`🤖 [START] Generate section details for ${sectionDescription}`)
   try {
     const { object } = await generateObject({
-      model: google("gemini-2.5-flash"),
-      temperature: 0.3,
+      // model: google("gemini-2.5-flash"),
+      model: openai("gpt-4.1"),
       //   model: openai("gpt-4.1-mini"),
-      //   model: google("gemini-2.5-pro"),
+      // model: google("gemini-2.5-pro"),
+      temperature: 0.3,
       prompt: `Given this key point: "${sectionDescription}"
 
 Extract 3-7 supporting details that ENRICH and EXPAND on this key point without repeating it. 
+This could be a direct quote from the text, a paraphrase, or a summarized insight.
 Adjacent key details in this section should also be included.
 
 The text includes chunk markers in the format {{ CHUNK X }}. For each key detail, identify the chunk number where that detail appears, and ensure the startChunk is between ${startChunk} and ${endChunk}.
-
-${getStyleGuidelines("key details")}
 
 Chapter title: ${chapterTitle}
 Section text: ${sectionText}`,
@@ -111,16 +109,6 @@ Section text: ${sectionText}`,
       `❌ [ERROR] Generate section details for ${sectionDescription}`,
       error,
     )
-    return []
+    return { details: [] }
   }
-}
-
-function getStyleGuidelines(contentType: string): string {
-  return `Style guidelines for ${contentType}:
-- Act as if you are the author taking readable, clear notes on the text.
-- Use the text's voice and vocabulary
-- Use declarative language
-- Be direct and concise and keep it simple
-- NEVER use terms like 'this chapter', 'this section', or 'the author'
-- Write complete sentences`
 }
