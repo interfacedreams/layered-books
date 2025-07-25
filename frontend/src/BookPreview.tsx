@@ -18,7 +18,9 @@ export default function BookPreview({ id, title, author }: BookLinkProps) {
           <span className="text-gray-800 font-medium line-clamp-2 leading-5">
             {title}
           </span>
-          <span className="text-gray-500 text-sm mt-1">{author}</span>
+          <span className="text-gray-500 text-sm mt-1 line-clamp-1">
+            {author}
+          </span>
         </div>
       </div>
     </Link>

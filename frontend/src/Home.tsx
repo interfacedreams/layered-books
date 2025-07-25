@@ -71,7 +71,7 @@ export default function Home() {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-2 max-w-4xl mx-auto">
       {/* Upload Section */}
       <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">
         Generate a layered book from your EPUB
@@ -109,8 +109,25 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex justify-between gap-4">
-        {/* User Books - Left Column */}
+      <div className="flex flex-col md:flex-row justify-between gap-6 md:gap-4">
+        {/* Example Books - First on mobile, Right Column on desktop */}
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            Example Books
+          </h3>
+          <div>
+            {exampleBooks.map((book) => (
+              <BookPreview
+                key={book.id}
+                id={book.id}
+                title={book.title}
+                author={book.author}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* User Books - Second on mobile, Left Column on desktop */}
         <div className="flex-1">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">
             Your Books
@@ -132,23 +149,6 @@ export default function Home() {
             ) : (
               <p className="text-gray-500">No books uploaded yet</p>
             )}
-          </div>
-        </div>
-
-        {/* Example Books - Right Column */}
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            Example Books
-          </h3>
-          <div>
-            {exampleBooks.map((book) => (
-              <BookPreview
-                key={book.id}
-                id={book.id}
-                title={book.title}
-                author={book.author}
-              />
-            ))}
           </div>
         </div>
       </div>

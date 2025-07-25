@@ -106,11 +106,12 @@ export default function BookPage() {
   }
 
   if (isSplitViewOpen) {
+    // note that this is only shown in the desktop view
     return (
       <div className="h-screen flex">
         {/* Left panel - Outline */}
         <div className="w-1/2 border-r border-gray-200 overflow-y-auto">
-          <div className="p-6 pl-20 pr-4">
+          <div className="pl-20 p-8">
             <BookPanel
               book={book}
               abstractionLevel={abstractionLevel}
@@ -138,7 +139,7 @@ export default function BookPage() {
 
   // Regular outline view
   return (
-    <div className="max-w-4xl mx-auto p-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-8">
       <BookPanel
         book={book}
         abstractionLevel={abstractionLevel}

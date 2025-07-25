@@ -8,9 +8,24 @@ export default function AbstractionStepper({
   onChange,
 }: AbstractionStepperProps) {
   const options = [
-    { level: 0, label: "Some Detail", description: "Chapters only" },
-    { level: 1, label: "More Detail", description: "Chapters + Key Points" },
-    { level: 2, label: "Most Detail", description: "All Details" },
+    {
+      level: 0,
+      shortLabel: "Some",
+      fullLabel: "Some Detail",
+      description: "Chapters only",
+    },
+    {
+      level: 1,
+      shortLabel: "More",
+      fullLabel: "More Detail",
+      description: "Chapters + Key Points",
+    },
+    {
+      level: 2,
+      shortLabel: "Most",
+      fullLabel: "Most Detail",
+      description: "All Details",
+    },
   ]
 
   return (
@@ -27,7 +42,8 @@ export default function AbstractionStepper({
             `}
             title={option.description}
           >
-            {option.label}
+            <span className="sm:hidden">{option.shortLabel}</span>
+            <span className="hidden sm:inline">{option.fullLabel}</span>
           </button>
         ))}
       </div>
