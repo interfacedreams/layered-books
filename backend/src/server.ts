@@ -6,8 +6,12 @@ const app = new Hono()
 const PORT = process.env.PORT ?? 3000
 
 const allowedOrigins = ["http://localhost:5173"]
-if (process.env.FRONTEND_URL) {
-  allowedOrigins.push(process.env.FRONTEND_URL)
+if (process.env.FRONTEND_DOMAINS) {
+  const domains = process.env.FRONTEND_DOMAINS.split(",")
+  for (const domain of domains) {
+    allowedOrigins.push(`https://${domain}`)
+    allowedOrigins.push(`https://www.${domain}`)
+  }
 }
 
 app.use(

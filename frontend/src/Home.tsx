@@ -71,7 +71,7 @@ export default function Home() {
   }
 
   return (
-    <div className="p-2 max-w-4xl mx-auto">
+    <div className="p-4 max-w-4xl mx-auto">
       {/* Upload Section */}
       <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">
         Generate a layered book from your EPUB
