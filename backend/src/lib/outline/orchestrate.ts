@@ -96,7 +96,7 @@ export async function orchestrateBookOutline(
     author: bookAuthor,
     filename,
     sessionId,
-    alwaysVisible: process.env.NODE_ENV === "development",
+    visibility: process.env.NODE_ENV === "development" ? "fully_public" : "summary_public",
     chunks,
   }
 

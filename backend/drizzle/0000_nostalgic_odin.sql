@@ -1,0 +1,2 @@
+-- Baseline migration - assumes tables already exist
+-- This migration is a no-op since the database is already in sync

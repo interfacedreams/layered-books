@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1753559750074,
+      "tag": "0000_nostalgic_odin",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1753559805143,
+      "tag": "0001_sudden_omega_red",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753576867064,
+      "tag": "0002_awesome_romulus",
+      "breakpoints": true
+    }
+  ]
+}

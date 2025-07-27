@@ -1,9 +1,9 @@
 import type { InferInsertModel } from "drizzle-orm"
 import {
-  boolean,
   index,
   integer,
   json,
+  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -15,14 +15,19 @@ export interface Chunk {
   text: string
 }
 
+export const visibilityEnum = pgEnum("visibility", [
+  "not_public",
+  "summary_public",
+  "fully_public",
+])
+
 export const booksTable = pgTable("books", {
   id: varchar("id", { length: 12 }).primaryKey(),
   title: text("title").notNull(),
   author: text("author").notNull(),
   filename: text("filename").notNull(),
   sessionId: text("sessionId").notNull(),
-  // used for books with no copyright protections
-  alwaysVisible: boolean("alwaysVisible").notNull().default(false),
+  visibility: visibilityEnum("visibility").notNull().default("summary_public"),
   chunks: json("chunks").$type<Chunk[]>().notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow(),
 })

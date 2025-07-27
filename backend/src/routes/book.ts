@@ -183,15 +183,24 @@ app.get("/:bookId", async (c) => {
       return c.json({ error: "Book not found" }, 404)
     }
 
-    if (!outline.alwaysVisible && outline.sessionId !== sessionId) {
+    // Visibility logic:
+    // - not_public: only accessible by creator (sessionId match required)
+    // - summary_public: accessible by anyone, but no book chunks
+    // - fully_public: accessible by anyone with full content
+    if (outline.visibility === "not_public" && outline.sessionId !== sessionId) {
       return c.json({ error: "Access denied" }, 403)
     }
+
+    // For summary_public visibility, remove chunks to prevent full content access
+    const responseOutline = outline.visibility === "summary_public" 
+      ? { ...outline, chunks: [] }
+      : outline
 
     return c.json({
       id: outline.id,
       title: outline.title,
       author: outline.author,
-      outline,
+      outline: responseOutline,
     })
   } catch (error) {
     if (error instanceof Error) {
