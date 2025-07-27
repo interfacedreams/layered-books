@@ -121,6 +121,7 @@ export default function BookPage() {
               isSplitViewOpen={isSplitViewOpen}
               currentItemId={currentItemId}
               setCurrentItemId={setCurrentItemId}
+              hasChunks={book.outline.chunks.length > 0}
             />
           </div>
         </div>
@@ -149,6 +150,7 @@ export default function BookPage() {
         isSplitViewOpen={false}
         currentItemId={currentItemId}
         setCurrentItemId={setCurrentItemId}
+        hasChunks={book.outline.chunks.length > 0}
       />
     </div>
   )

@@ -10,6 +10,7 @@ interface OutlineProps {
   isSplitViewOpen: boolean
   currentItemId: string | null
   setCurrentItemId: (id: string | null) => void
+  hasChunks: boolean
 }
 
 export default function Outline({
@@ -19,6 +20,7 @@ export default function Outline({
   isSplitViewOpen,
   currentItemId,
   setCurrentItemId,
+  hasChunks,
 }: OutlineProps) {
   const [expansionPath, setExpansionPath] = useState<string[]>([])
   const [shouldScroll, setShouldScroll] = useState(false)
@@ -84,6 +86,7 @@ export default function Outline({
             onLink={handleLink}
             onOpenReading={onOpenReading}
             onScrollComplete={handleScrollComplete}
+            hasChunks={hasChunks}
           />
         ))}
       </ul>

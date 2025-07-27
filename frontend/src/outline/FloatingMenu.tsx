@@ -7,6 +7,7 @@ interface FloatingMenuProps {
   onRead: (e: React.MouseEvent) => void
   onMouseEnter: () => void
   onMouseLeave: () => void
+  hasChunks: boolean
 }
 
 export default function FloatingMenu({
@@ -16,6 +17,7 @@ export default function FloatingMenu({
   onRead,
   onMouseEnter,
   onMouseLeave,
+  hasChunks,
 }: FloatingMenuProps) {
   const actions = [
     {
@@ -30,12 +32,12 @@ export default function FloatingMenu({
       title: "Get link",
       onClick: onLink,
     },
-    {
+    ...(hasChunks ? [{
       id: "read",
       content: <BookOpenText size={16} />,
       title: "Read from here",
       onClick: onRead,
-    },
+    }] : []),
   ]
   return (
     <>

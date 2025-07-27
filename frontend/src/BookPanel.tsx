@@ -12,6 +12,7 @@ interface BookPanelProps {
   isSplitViewOpen: boolean
   currentItemId: string | null
   setCurrentItemId: (id: string | null) => void
+  hasChunks: boolean
 }
 
 export default function BookPanel({
@@ -23,6 +24,7 @@ export default function BookPanel({
   isSplitViewOpen,
   currentItemId,
   setCurrentItemId,
+  hasChunks,
 }: BookPanelProps) {
   return (
     <>
@@ -35,7 +37,7 @@ export default function BookPanel({
             value={abstractionLevel}
             onChange={onAbstractionLevelChange}
           />
-          {!isSplitViewOpen && (
+          {!isSplitViewOpen && hasChunks && (
             <button
               type="button"
               onClick={onSplitViewClick}
@@ -56,6 +58,7 @@ export default function BookPanel({
         isSplitViewOpen={isSplitViewOpen}
         currentItemId={currentItemId}
         setCurrentItemId={setCurrentItemId}
+        hasChunks={hasChunks}
       />
     </>
   )

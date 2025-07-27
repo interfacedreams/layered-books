@@ -22,6 +22,7 @@ interface BulletItemProps {
   onLink: (id: string) => void
   onOpenReading: (id: string) => void
   onScrollComplete?: () => void
+  hasChunks: boolean
 }
 
 export default function OutlineItem({
@@ -35,6 +36,7 @@ export default function OutlineItem({
   onLink,
   onOpenReading,
   onScrollComplete,
+  hasChunks,
 }: BulletItemProps) {
   const [isItemHovered, setIsItemHovered] = useState(false)
   const [isIconAreaHovered, setIsIconAreaHovered] = useState(false)
@@ -119,6 +121,7 @@ export default function OutlineItem({
             onRead={handleRead}
             onMouseEnter={() => setIsIconAreaHovered(true)}
             onMouseLeave={() => setIsIconAreaHovered(false)}
+            hasChunks={hasChunks}
           />
 
           <div className="flex items-start gap-2">
@@ -171,6 +174,7 @@ export default function OutlineItem({
               onLink={onLink}
               onOpenReading={onOpenReading}
               onScrollComplete={onScrollComplete}
+              hasChunks={hasChunks}
             />
           ))}
         </ul>
