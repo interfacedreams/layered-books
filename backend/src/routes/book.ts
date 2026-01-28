@@ -280,8 +280,9 @@ app.get("/:bookId", async (c) => {
       return c.json({ error: "Access denied" }, 403)
     }
 
-    // For summary_public visibility, remove chunks to prevent full content access
-    const responseOutline = outline.visibility === "summary_public" 
+    // For summary_public visibility, remove chunks unless requester is the creator
+    const isCreator = outline.sessionId === sessionId
+    const responseOutline = outline.visibility === "summary_public" && !isCreator
       ? { ...outline, chunks: [] }
       : outline
 
