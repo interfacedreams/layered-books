@@ -18,7 +18,7 @@ export default function Home() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
-  const { data: statusData } = useQuery({
+  const { data: _statusData } = useQuery({
     queryKey: ["status", getStoredApiKey()],
     queryFn: fetchStatus,
   })
