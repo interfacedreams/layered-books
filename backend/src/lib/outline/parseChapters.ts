@@ -1,8 +1,20 @@
-import { google } from "@ai-sdk/google"
-import { openai } from "@ai-sdk/openai"
+import { createAnthropic } from "@ai-sdk/anthropic"
 import { generateObject } from "ai"
 import { z } from "zod"
 import { getKeypointExamples, keyPointStyleGuidelines } from "./style"
+
+import type { ModelChoice } from "./generate"
+
+const MODEL_IDS: Record<ModelChoice, string> = {
+  "haiku-4-5": "claude-haiku-4-5",
+  "sonnet-4-5": "claude-sonnet-4-5",
+  "opus-4-5": "claude-opus-4-5",
+}
+
+const getModel = (apiKey?: string, model: ModelChoice = "haiku-4-5") => {
+  const client = apiKey ? createAnthropic({ apiKey }) : createAnthropic()
+  return client(MODEL_IDS[model])
+}
 
 const chapterSchema = z.object({
   chapterTitle: z
@@ -18,20 +30,18 @@ const chapterSchema = z.object({
 })
 
 const chaptersSchema = z.object({
-  chapters: z.array(chapterSchema).min(1).max(300),
+  chapters: z.array(chapterSchema),
 })
 
 type AiChapters = z.infer<typeof chaptersSchema>
 
-export async function generateChapters(bookText: string): Promise<AiChapters> {
+export async function generateChapters(bookText: string, apiKey?: string, model?: ModelChoice): Promise<AiChapters> {
   console.log("🤖 [START] Generate chapters")
   try {
     const { object } = await generateObject({
-      // model: google("gemini-2.5-flash"),
-      // model: google("gemini-2.5-pro"),
-      model: openai("gpt-4.1"),
+      model: getModel(apiKey, model),
       temperature: 0.3,
-      prompt: `Identify and extract all chapters from this book with complete coverage and no gaps, flowing one after the other.
+      prompt: `Identify and extract all chapters from this book with complete coverage and no gaps, flowing one after the other. There should be at least 1 chapter.
 
 The text includes chunk markers in the format {{ CHUNK X }}. Use these chunk numbers to define chapter boundaries.
 

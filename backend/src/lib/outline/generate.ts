@@ -1,8 +1,20 @@
-import { google } from "@ai-sdk/google";
-import { openai } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { getKeypointExamples, keyPointStyleGuidelines } from "./style";
+
+export type ModelChoice = "haiku-4-5" | "sonnet-4-5" | "opus-4-5";
+
+const MODEL_IDS: Record<ModelChoice, string> = {
+	"haiku-4-5": "claude-haiku-4-5",
+	"sonnet-4-5": "claude-sonnet-4-5",
+	"opus-4-5": "claude-opus-4-5",
+};
+
+const getModel = (apiKey?: string, model: ModelChoice = "haiku-4-5") => {
+	const client = apiKey ? createAnthropic({ apiKey }) : createAnthropic();
+	return client(MODEL_IDS[model]);
+};
 
 const semanticSectionSchema = z.object({
 	keyPoint: z.string().describe(keyPointStyleGuidelines("section")),
@@ -15,7 +27,7 @@ const semanticSectionSchema = z.object({
 });
 
 const chapterOutlineSchema = z.object({
-	sections: z.array(semanticSectionSchema).min(3).max(9),
+	sections: z.array(semanticSectionSchema),
 });
 
 type AiChapterOutline = z.infer<typeof chapterOutlineSchema>;
@@ -28,7 +40,7 @@ const keyDetailSchema = z.object({
 });
 
 const sectionDetailsSchema = z.object({
-	details: z.array(keyDetailSchema).min(3).max(7),
+	details: z.array(keyDetailSchema),
 });
 
 type AiSectionDetails = z.infer<typeof sectionDetailsSchema>;
@@ -37,6 +49,8 @@ export async function generateChapterOutline(
 	chapterText: string,
 	chapterTitle: string,
 	chapterKeyPoint: string,
+	apiKey?: string,
+	model?: ModelChoice,
 ): Promise<AiChapterOutline> {
 	// Skip if chapter text is too short (less than 500 characters, ~100 words)
 	if (!chapterText || chapterText.trim().length < 500) {
@@ -46,9 +60,7 @@ export async function generateChapterOutline(
 
 	try {
 		const { object } = await generateObject({
-			// model: google("gemini-2.5-flash"),
-			// model: google("gemini-2.5-pro"),
-			model: openai("gpt-4.1"),
+			model: getModel(apiKey, model),
 			temperature: 0.3,
 			prompt: `Break this chapter into 3-7 semantic sections with complete coverage and no gaps, flowing one after the other.
 Each semantic section has a key point and a start and end chunk number.
@@ -80,14 +92,13 @@ export async function generateSectionDetails(
 	sectionDescription: string,
 	startChunk: number,
 	endChunk: number,
+	apiKey?: string,
+	model?: ModelChoice,
 ): Promise<AiSectionDetails> {
 	console.log(`🤖 [START] Generate section details for ${sectionDescription}`);
 	try {
 		const { object } = await generateObject({
-			// model: google("gemini-2.5-flash"),
-			model: openai("gpt-4.1"),
-			//   model: openai("gpt-4.1-mini"),
-			// model: google("gemini-2.5-pro"),
+			model: getModel(apiKey, model),
 			temperature: 0.3,
 			prompt: `Given this key point: "${sectionDescription}"
 

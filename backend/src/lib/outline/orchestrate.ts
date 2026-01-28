@@ -6,13 +6,15 @@ import type {
   OutlineEntities,
 } from "../types"
 import { generateId } from "../utils"
-import { generateChapterOutline, generateSectionDetails } from "./generate"
+import { generateChapterOutline, generateSectionDetails, type ModelChoice } from "./generate"
 import { generateChapters } from "./parseChapters"
 
 export async function orchestrateChapters(
   bookText: string,
+  apiKey?: string,
+  model?: ModelChoice,
 ): Promise<ChapterWithChunks[]> {
-  const parsedChapters = await generateChapters(bookText)
+  const parsedChapters = await generateChapters(bookText, apiKey, model)
 
   const chapters = parsedChapters.chapters.map((chapter) => {
     try {
@@ -44,11 +46,15 @@ export async function orchestrateChapters(
 
 async function orchestrateChapterOutline(
   chapter: ChapterWithChunks,
+  apiKey?: string,
+  model?: ModelChoice,
 ): Promise<ChapterOutline> {
   const { sections } = await generateChapterOutline(
     chapter.text,
     chapter.title,
     chapter.keyPoint,
+    apiKey,
+    model,
   )
 
   const sectionsWithDetails = await Promise.all(
@@ -64,6 +70,8 @@ async function orchestrateChapterOutline(
         section.keyPoint,
         section.startChunk,
         section.endChunk,
+        apiKey,
+        model,
       )
       return {
         ...section,
@@ -86,6 +94,8 @@ export async function orchestrateBookOutline(
   filename: string,
   sessionId: string,
   chunks: Chunk[],
+  apiKey?: string,
+  model?: ModelChoice,
 ): Promise<OutlineEntities> {
   const bookId = generateId()
   console.log(`🤖 Generate book outline for "${bookTitle}"`)
@@ -107,7 +117,7 @@ export async function orchestrateBookOutline(
 
   await Promise.all(
     chapters.map(async (chapter, chapterIndex) => {
-      const outline = await orchestrateChapterOutline(chapter)
+      const outline = await orchestrateChapterOutline(chapter, apiKey, model)
 
       const chapterId = generateId()
       chapterEntities.push({

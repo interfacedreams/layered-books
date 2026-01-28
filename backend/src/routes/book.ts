@@ -2,7 +2,11 @@ import { unlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Hono } from "hono"
-import { countUserBooks, fetchUserBooks } from "../lib/book"
+import { countAllBooks, countUserBooks, fetchUserBooks } from "../lib/book"
+import type { ModelChoice } from "../lib/outline/generate"
+
+const MAX_BOOK_CHARS = 1_300_000 // ~800 pages worth
+const FREE_BOOK_LIMIT = 0 // TODO: change back to 100
 import {
   getOutline,
   orchestrateBookOutline,
@@ -18,23 +22,58 @@ import type {
 
 const app = new Hono()
 
+const VALID_MODELS: ModelChoice[] = ["haiku-4-5", "sonnet-4-5", "opus-4-5"]
+
 app.post("/summarize", async (c) => {
   const sessionId = c.req.header("x-session-id") // an id that is unique to the user's browser
+  const userApiKey = c.req.header("x-anthropic-api-key")
+  const modelHeader = c.req.header("x-model") as ModelChoice | undefined
+
+  // Free tier must use haiku-4-5, paid users can choose
+  const requestedModel: ModelChoice = modelHeader && VALID_MODELS.includes(modelHeader) ? modelHeader : "haiku-4-5"
+  const model: ModelChoice = userApiKey ? requestedModel : "haiku-4-5"
+  const isFreeTier = !userApiKey
+
+  if (!userApiKey && modelHeader && modelHeader !== "haiku-4-5") {
+    console.log(`⚠️ Free tier requested ${modelHeader}, forcing haiku-4-5`)
+  }
+  console.log(`🤖 Using model: ${model} (free tier: ${isFreeTier})`)
 
   if (!sessionId || typeof sessionId !== "string") {
+    console.log("❌ Missing session ID")
     return c.json({ error: "Session ID is required" }, 400)
   }
+  console.log(`📚 Upload request from session: ${sessionId}`)
+
+  // Check if free tier is exhausted and user needs their own API key
+  const totalBooks = await countAllBooks()
+  console.log(`📊 Total books in system: ${totalBooks}`)
+  if (totalBooks >= FREE_BOOK_LIMIT && !userApiKey) {
+    console.log("❌ Free tier exhausted, user API key required")
+    return c.json(
+      {
+        error: "API key required",
+        code: "API_KEY_REQUIRED",
+        details: "Free tier limit reached. Please provide your own Claude API key to continue.",
+      },
+      402,
+    )
+  }
+
   const formData = await c.req.formData()
   const fileEntry = formData.get("file")
 
   if (!fileEntry || !(fileEntry instanceof File)) {
+    console.log("❌ No file in form data")
     return c.json({ error: "No file uploaded" }, 400)
   }
+  console.log(`📄 File received: ${fileEntry.name} (${fileEntry.type})`)
 
   const isEpubExtension = fileEntry.name.toLowerCase().endsWith(".epub")
   const isEpubMimeType = fileEntry.type === "application/epub+zip"
 
   if (!isEpubExtension && !isEpubMimeType) {
+    console.log(`❌ Not an EPUB: ${fileEntry.name} (${fileEntry.type})`)
     return c.json(
       {
         error: "Only EPUB files are supported",
@@ -48,7 +87,9 @@ app.post("/summarize", async (c) => {
   }
 
   const count = await countUserBooks(sessionId)
+  console.log(`📊 User has ${count} books`)
   if (count >= 10) {
+    console.log("❌ User at max books (10)")
     return c.json(
       { error: "You have reached the maximum number of books" },
       400,
@@ -80,12 +121,40 @@ app.post("/summarize", async (c) => {
     try {
       rawBook = await extractRawTextFromEpub(tempFilePath)
 
+      // Check book size
+      const totalChars = rawBook.chunks.reduce((sum, chunk) => sum + chunk.text.length, 0)
+      console.log(`📏 Book size: ${totalChars.toLocaleString()} characters`)
+      if (totalChars > MAX_BOOK_CHARS) {
+        console.log("❌ Book too large")
+        return c.json(
+          {
+            error: "Book too large",
+            code: "BOOK_TOO_LARGE",
+            details: `This book exceeds the maximum size of ~800 pages. Your book has approximately ${Math.round(totalChars / 1625)} pages.`,
+          },
+          400,
+        )
+      }
+
       const textWithMarkers = rawBook.chunks
         .map((chunk) => `{{ CHUNK ${chunk.index} }}\n${chunk.text}`)
         .join("\n\n")
 
-      chapters = await orchestrateChapters(textWithMarkers)
+      chapters = await orchestrateChapters(textWithMarkers, userApiKey, model)
+
+      if (chapters.length === 0) {
+        console.log("❌ No chapters generated - AI call may have failed")
+        return c.json(
+          {
+            error: "Failed to extract chapters",
+            details: "Could not identify chapters in the book",
+          },
+          500,
+        )
+      }
+      console.log(`✅ Extracted ${chapters.length} chapters`)
     } catch (extractError) {
+      console.log("❌ Failed to parse EPUB:", extractError)
       return c.json(
         {
           error: "Failed to parse EPUB file",
@@ -105,8 +174,11 @@ app.post("/summarize", async (c) => {
         fileEntry.name,
         sessionId,
         rawBook.chunks,
+        userApiKey,
+        model,
       )
     } catch (generateError) {
+      console.log("❌ Failed to generate outline:", generateError)
       return c.json(
         {
           error: "Failed to generate outline",
@@ -148,6 +220,23 @@ app.post("/summarize", async (c) => {
   } finally {
     await unlink(tempFilePath).catch(() => {})
   }
+})
+
+app.get("/status", async (c) => {
+  const userApiKey = c.req.header("x-anthropic-api-key")
+  const totalBooks = await countAllBooks()
+  const freeBooksRemaining = Math.max(0, FREE_BOOK_LIMIT - totalBooks)
+  const isFreeTierAvailable = freeBooksRemaining > 0
+  const hasApiKey = !!userApiKey
+
+  return c.json({
+    isFreeTierAvailable,
+    freeBooksRemaining,
+    hasApiKey,
+    availableModels: hasApiKey
+      ? ["haiku-4-5", "sonnet-4-5", "opus-4-5"]
+      : ["haiku-4-5"],
+  })
 })
 
 app.get("/all", async (c) => {

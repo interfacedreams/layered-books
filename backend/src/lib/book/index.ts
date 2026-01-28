@@ -1,1 +1,1 @@
-export { fetchUserBooks, countUserBooks } from "./getUserBooks"
+export { fetchUserBooks, countUserBooks, countAllBooks } from "./getUserBooks"

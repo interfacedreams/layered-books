@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { useDropzone } from "react-dropzone"
-import { fetchUsersBooks, uploadBook } from "./api/books"
+import { fetchStatus, fetchUsersBooks, uploadBook } from "./api/books"
 import BookPreview from "./BookPreview"
+import ApiKeyModal, { getStoredApiKey } from "./ApiKeyModal"
 import { getSessionId } from "./utils"
 
 interface Book {
@@ -13,6 +15,13 @@ interface Book {
 
 export default function Home() {
   const queryClient = useQueryClient()
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+
+  const { data: statusData } = useQuery({
+    queryKey: ["status", getStoredApiKey()],
+    queryFn: fetchStatus,
+  })
 
   const {
     data: booksData,
@@ -24,10 +33,18 @@ export default function Home() {
   })
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadBook(file, getSessionId()),
+    mutationFn: (file: File) =>
+      uploadBook({ file, sessionId: getSessionId() }),
     onSuccess: () => {
-      // Invalidate and refetch books after successful upload
+      setUploadError(null)
       queryClient.invalidateQueries({ queryKey: ["allBooks"] })
+    },
+    onError: (err: Error) => {
+      if (err.message === "API_KEY_REQUIRED") {
+        setUploadError("Free tier exhausted. Please set your API key to continue.")
+      } else {
+        setUploadError(err.message)
+      }
     },
   })
 
@@ -71,6 +88,7 @@ export default function Home() {
   }
 
   return (
+    <>
     <div className="p-4 max-w-4xl mx-auto">
       {/* Upload Section */}
       <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">
@@ -101,10 +119,8 @@ export default function Home() {
             {!uploadMutation.isPending &&
               "Generating the book outline usually takes 1-3 minutes"}
           </p>
-          {uploadMutation.isError && (
-            <p className="text-sm text-red-500 mt-1">
-              Upload failed. Please try again.
-            </p>
+          {uploadError && (
+            <p className="text-sm text-red-500 mt-1">{uploadError}</p>
           )}
         </div>
       </div>
@@ -153,5 +169,15 @@ export default function Home() {
         </div>
       </div>
     </div>
+    <ApiKeyModal
+      isOpen={showApiKeyModal}
+      onClose={() => {
+        setShowApiKeyModal(false)
+        if (getStoredApiKey()) {
+          setUploadError(null)
+        }
+      }}
+    />
+    </>
   )
 }

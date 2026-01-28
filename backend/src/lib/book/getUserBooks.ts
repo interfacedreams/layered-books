@@ -22,3 +22,8 @@ export const countUserBooks = async (sessionId: string) => {
 
   return result[0]?.count ?? 0
 }
+
+export const countAllBooks = async () => {
+  const result = await db.select({ count: count() }).from(booksTable)
+  return result[0]?.count ?? 0
+}

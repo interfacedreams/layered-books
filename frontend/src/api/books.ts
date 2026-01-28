@@ -1,4 +1,28 @@
 import type { BookOutline, BookSummaries } from "../types"
+import { getStoredApiKey, getStoredModel } from "../ApiKeyModal"
+
+export interface StatusResponse {
+  isFreeTierAvailable: boolean
+  freeBooksRemaining: number
+  hasApiKey: boolean
+  availableModels: string[]
+}
+
+export const fetchStatus = async (): Promise<StatusResponse> => {
+  const apiKey = getStoredApiKey()
+  const headers: Record<string, string> = {}
+  if (apiKey) {
+    headers["x-anthropic-api-key"] = apiKey
+  }
+
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/book/status`, {
+    headers,
+  })
+  if (!response.ok) {
+    throw new Error("Failed to fetch status")
+  }
+  return response.json()
+}
 
 export interface BookData {
   id: string
@@ -54,26 +78,47 @@ export const fetchUsersBooks = async (
   return response.json()
 }
 
-export const uploadBook = async (
-  file: File,
-  sessionId: string,
-): Promise<BookPreview> => {
+export interface UploadOptions {
+  file: File
+  sessionId: string
+  model?: "haiku-4-5" | "sonnet-4-5" | "opus-4-5"
+}
+
+export const uploadBook = async ({
+  file,
+  sessionId,
+}: UploadOptions): Promise<BookPreview> => {
   const formData = new FormData()
   formData.append("file", file)
+
+  const apiKey = getStoredApiKey()
+  const model = getStoredModel()
+  const headers: Record<string, string> = {
+    "x-session-id": sessionId,
+    "x-model": model,
+  }
+  if (apiKey) {
+    headers["x-anthropic-api-key"] = apiKey
+  }
 
   const response = await fetch(
     `${import.meta.env.VITE_API_URL}/book/summarize`,
     {
       method: "POST",
-      headers: {
-        "x-session-id": sessionId,
-      },
+      headers,
       body: formData,
     },
   )
 
   if (!response.ok) {
-    throw new Error(`Failed to upload book: ${response.statusText}`)
+    const data = await response.json().catch(() => ({}))
+    if (data.code === "API_KEY_REQUIRED") {
+      throw new Error("API_KEY_REQUIRED")
+    }
+    if (data.code === "BOOK_TOO_LARGE") {
+      throw new Error(data.details || "Book too large")
+    }
+    throw new Error(data.error || `Failed to upload book: ${response.statusText}`)
   }
 
   return response.json()
