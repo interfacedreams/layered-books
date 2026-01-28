@@ -6,7 +6,7 @@ import { countAllBooks, countUserBooks, fetchUserBooks } from "../lib/book"
 import type { ModelChoice } from "../lib/outline/generate"
 
 const MAX_BOOK_CHARS = 1_300_000 // ~800 pages worth
-const FREE_BOOK_LIMIT = 0 // TODO: change back to 100
+const FREE_BOOK_LIMIT = 100
 import {
   getOutline,
   orchestrateBookOutline,

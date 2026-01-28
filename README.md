@@ -9,3 +9,5 @@ Layers:
 - Layer 3: key details for each key point
 
 ![Demo](./frontend/public/demo.png)
+
+Push to github for automatic railway deploy.

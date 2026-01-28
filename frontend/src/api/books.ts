@@ -111,6 +111,10 @@ export const uploadBook = async ({
   )
 
   if (!response.ok) {
+    // Handle 402 specifically as it means API key required
+    if (response.status === 402) {
+      throw new Error("API_KEY_REQUIRED")
+    }
     const data = await response.json().catch(() => ({}))
     if (data.code === "API_KEY_REQUIRED") {
       throw new Error("API_KEY_REQUIRED")
@@ -118,7 +122,7 @@ export const uploadBook = async ({
     if (data.code === "BOOK_TOO_LARGE") {
       throw new Error(data.details || "Book too large")
     }
-    throw new Error(data.error || `Failed to upload book: ${response.statusText}`)
+    throw new Error(data.error || data.details || "Failed to upload book")
   }
 
   return response.json()
