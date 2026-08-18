@@ -1,5 +1,9 @@
 import type { BookOutline, BookSummaries } from "../types"
-import { getStoredApiKey, getStoredModel } from "../ApiKeyModal"
+import {
+  getStoredApiKey,
+  getStoredModel,
+  getStoredOpenAiKey,
+} from "../ApiKeyModal"
 
 export interface StatusResponse {
   isFreeTierAvailable: boolean
@@ -13,6 +17,10 @@ export const fetchStatus = async (): Promise<StatusResponse> => {
   const headers: Record<string, string> = {}
   if (apiKey) {
     headers["x-anthropic-api-key"] = apiKey
+  }
+  const openAiKey = getStoredOpenAiKey()
+  if (openAiKey) {
+    headers["x-openai-api-key"] = openAiKey
   }
 
   const response = await fetch(`${import.meta.env.VITE_API_URL}/book/status`, {
@@ -81,7 +89,7 @@ export const fetchUsersBooks = async (
 export interface UploadOptions {
   file: File
   sessionId: string
-  model?: "haiku-4-5" | "sonnet-4-5" | "opus-4-5"
+  model?: "sonnet-5" | "gpt-5.6-sol" | "haiku-4-5" | "sonnet-4-5" | "opus-4-5"
 }
 
 export const uploadBook = async ({
@@ -99,6 +107,10 @@ export const uploadBook = async ({
   }
   if (apiKey) {
     headers["x-anthropic-api-key"] = apiKey
+  }
+  const openAiKey = getStoredOpenAiKey()
+  if (openAiKey) {
+    headers["x-openai-api-key"] = openAiKey
   }
 
   const response = await fetch(

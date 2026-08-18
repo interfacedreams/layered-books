@@ -3,7 +3,11 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Hono } from "hono"
 import { countAllBooks, countUserBooks, fetchUserBooks } from "../lib/book"
-import type { ModelChoice } from "../lib/outline/generate"
+import {
+  DEFAULT_MODEL,
+  type ModelChoice,
+  modelProvider,
+} from "../lib/outline/models"
 
 const MAX_BOOK_CHARS = 1_300_000 // ~800 pages worth
 const FREE_BOOK_LIMIT = 100
@@ -22,20 +26,43 @@ import type {
 
 const app = new Hono()
 
-const VALID_MODELS: ModelChoice[] = ["haiku-4-5", "sonnet-4-5", "opus-4-5"]
+const VALID_MODELS: ModelChoice[] = [
+  "sonnet-5",
+  "gpt-5.6-sol",
+  "haiku-4-5",
+  "sonnet-4-5",
+  "opus-4-5",
+]
 
 app.post("/summarize", async (c) => {
   const sessionId = c.req.header("x-session-id") // an id that is unique to the user's browser
-  const userApiKey = c.req.header("x-anthropic-api-key")
+  const anthropicApiKey = c.req.header("x-anthropic-api-key")
+  const openaiApiKey = c.req.header("x-openai-api-key")
   const modelHeader = c.req.header("x-model") as ModelChoice | undefined
 
-  // Free tier must use haiku-4-5, paid users can choose
-  const requestedModel: ModelChoice = modelHeader && VALID_MODELS.includes(modelHeader) ? modelHeader : "haiku-4-5"
-  const model: ModelChoice = userApiKey ? requestedModel : "haiku-4-5"
+  // Users can only pick a model they hold the matching provider key for;
+  // otherwise fall back to the default model on the server's key (free tier)
+  const requestedModel: ModelChoice =
+    modelHeader && VALID_MODELS.includes(modelHeader)
+      ? modelHeader
+      : DEFAULT_MODEL
+  const keyFor = (m: ModelChoice) =>
+    modelProvider(m) === "openai" ? openaiApiKey : anthropicApiKey
+  // No key for the requested model: fall back to a model the user does hold a
+  // key for, else the free-tier default on the server's key
+  const fallbackModel: ModelChoice = anthropicApiKey
+    ? DEFAULT_MODEL
+    : openaiApiKey
+      ? "gpt-5.6-sol"
+      : DEFAULT_MODEL
+  const model: ModelChoice = keyFor(requestedModel)
+    ? requestedModel
+    : fallbackModel
+  const userApiKey = keyFor(model)
   const isFreeTier = !userApiKey
 
-  if (!userApiKey && modelHeader && modelHeader !== "haiku-4-5") {
-    console.log(`⚠️ Free tier requested ${modelHeader}, forcing haiku-4-5`)
+  if (model !== requestedModel) {
+    console.log(`⚠️ No API key for ${requestedModel}, forcing ${DEFAULT_MODEL}`)
   }
   console.log(`🤖 Using model: ${model} (free tier: ${isFreeTier})`)
 
@@ -54,7 +81,8 @@ app.post("/summarize", async (c) => {
       {
         error: "API key required",
         code: "API_KEY_REQUIRED",
-        details: "Free tier limit reached. Please provide your own Claude API key to continue.",
+        details:
+          "Free tier limit reached. Please provide your own OpenAI or Claude API key to continue.",
       },
       402,
     )
@@ -122,7 +150,10 @@ app.post("/summarize", async (c) => {
       rawBook = await extractRawTextFromEpub(tempFilePath)
 
       // Check book size
-      const totalChars = rawBook.chunks.reduce((sum, chunk) => sum + chunk.text.length, 0)
+      const totalChars = rawBook.chunks.reduce(
+        (sum, chunk) => sum + chunk.text.length,
+        0,
+      )
       console.log(`📏 Book size: ${totalChars.toLocaleString()} characters`)
       if (totalChars > MAX_BOOK_CHARS) {
         console.log("❌ Book too large")
@@ -223,19 +254,22 @@ app.post("/summarize", async (c) => {
 })
 
 app.get("/status", async (c) => {
-  const userApiKey = c.req.header("x-anthropic-api-key")
+  const anthropicApiKey = c.req.header("x-anthropic-api-key")
+  const openaiApiKey = c.req.header("x-openai-api-key")
   const totalBooks = await countAllBooks()
   const freeBooksRemaining = Math.max(0, FREE_BOOK_LIMIT - totalBooks)
   const isFreeTierAvailable = freeBooksRemaining > 0
-  const hasApiKey = !!userApiKey
+  const hasApiKey = !!(anthropicApiKey || openaiApiKey)
 
   return c.json({
     isFreeTierAvailable,
     freeBooksRemaining,
     hasApiKey,
-    availableModels: hasApiKey
-      ? ["haiku-4-5", "sonnet-4-5", "opus-4-5"]
-      : ["haiku-4-5"],
+    availableModels: [
+      "sonnet-5",
+      ...(anthropicApiKey ? ["haiku-4-5", "sonnet-4-5", "opus-4-5"] : []),
+      ...(openaiApiKey ? ["gpt-5.6-sol"] : []),
+    ],
   })
 })
 
@@ -272,25 +306,17 @@ app.get("/:bookId", async (c) => {
       return c.json({ error: "Book not found" }, 404)
     }
 
-    // Visibility logic:
-    // - not_public: only accessible by creator (sessionId match required)
-    // - summary_public: accessible by anyone, but no book chunks
-    // - fully_public: accessible by anyone with full content
-    if (outline.visibility === "not_public" && outline.sessionId !== sessionId) {
+    // Sharing is disabled for now: books are only accessible by their creator,
+    // regardless of the stored visibility setting.
+    if (outline.sessionId !== sessionId) {
       return c.json({ error: "Access denied" }, 403)
     }
-
-    // For summary_public visibility, remove chunks unless requester is the creator
-    const isCreator = outline.sessionId === sessionId
-    const responseOutline = outline.visibility === "summary_public" && !isCreator
-      ? { ...outline, chunks: [] }
-      : outline
 
     return c.json({
       id: outline.id,
       title: outline.title,
       author: outline.author,
-      outline: responseOutline,
+      outline,
     })
   } catch (error) {
     if (error instanceof Error) {

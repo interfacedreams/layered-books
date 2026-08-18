@@ -1,0 +1,4 @@
+# App runs on Bun; pin Node to a supported version since nixpacks'
+# default (Node 18) was removed from nixpkgs after reaching end-of-life.
+[phases.setup]
+nixPkgs = ["nodejs_20", "bun"]

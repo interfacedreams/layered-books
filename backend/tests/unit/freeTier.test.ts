@@ -37,7 +37,7 @@ describe("Free Tier Limits", () => {
       expect(data.isFreeTierAvailable).toBe(true)
       expect(data.freeBooksRemaining).toBe(50)
       expect(data.hasApiKey).toBe(false)
-      expect(data.availableModels).toEqual(["haiku-4-5"])
+      expect(data.availableModels).toEqual(["sonnet-5"])
     })
 
     test("returns free tier unavailable when at limit", async () => {
@@ -69,7 +69,7 @@ describe("Free Tier Limits", () => {
 
       expect(res.status).toBe(200)
       expect(data.hasApiKey).toBe(true)
-      expect(data.availableModels).toEqual(["haiku-4-5", "sonnet-4-5", "opus-4-5"])
+      expect(data.availableModels).toEqual(["sonnet-5", "haiku-4-5", "sonnet-4-5", "opus-4-5"])
     })
   })
 

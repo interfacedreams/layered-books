@@ -6,15 +6,18 @@ interface BookViewerProps {
   chunks: BookChunk[]
   startChunkIndex?: number
   onClose?: () => void
+  onSectionChange?: (chunkIndex: number) => void
 }
 
 export default function PageViewer({
   chunks,
   startChunkIndex = 0,
   onClose,
+  onSectionChange,
 }: BookViewerProps) {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
   const [sections, setSections] = useState<string[]>([])
+  const [sectionStartChunks, setSectionStartChunks] = useState<number[]>([])
   const MAX_CHARS_PER_SECTION = 900 // Character limit per section
 
   useEffect(() => {

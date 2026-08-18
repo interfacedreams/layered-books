@@ -7,9 +7,15 @@ interface ApiKeyModalProps {
 }
 
 const API_KEY_STORAGE_KEY = "anthropic-api-key"
+const OPENAI_KEY_STORAGE_KEY = "openai-api-key"
 const MODEL_STORAGE_KEY = "anthropic-model"
 
-export type ModelChoice = "haiku-4-5" | "sonnet-4-5" | "opus-4-5"
+export type ModelChoice =
+  | "sonnet-5"
+  | "gpt-5.6-sol"
+  | "haiku-4-5"
+  | "sonnet-4-5"
+  | "opus-4-5"
 
 export function getStoredApiKey(): string | null {
   return localStorage.getItem(API_KEY_STORAGE_KEY)
@@ -23,8 +29,22 @@ export function setStoredApiKey(key: string | null) {
   }
 }
 
+export function getStoredOpenAiKey(): string | null {
+  return localStorage.getItem(OPENAI_KEY_STORAGE_KEY)
+}
+
+export function setStoredOpenAiKey(key: string | null) {
+  if (key) {
+    localStorage.setItem(OPENAI_KEY_STORAGE_KEY, key)
+  } else {
+    localStorage.removeItem(OPENAI_KEY_STORAGE_KEY)
+  }
+}
+
 export function getStoredModel(): ModelChoice {
-  return (localStorage.getItem(MODEL_STORAGE_KEY) as ModelChoice) || "haiku-4-5"
+  return (
+    (localStorage.getItem(MODEL_STORAGE_KEY) as ModelChoice) || "sonnet-5"
+  )
 }
 
 export function setStoredModel(model: ModelChoice) {
@@ -33,13 +53,14 @@ export function setStoredModel(model: ModelChoice) {
 
 export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
   const [apiKey, setApiKey] = useState("")
-  const [model, setModel] = useState<ModelChoice>("haiku-4-5")
+  const [openAiKey, setOpenAiKey] = useState("")
+  const [model, setModel] = useState<ModelChoice>("sonnet-5")
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
-      const stored = getStoredApiKey()
-      setApiKey(stored || "")
+      setApiKey(getStoredApiKey() || "")
+      setOpenAiKey(getStoredOpenAiKey() || "")
       setModel(getStoredModel())
       setSaved(false)
     }
@@ -49,6 +70,7 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
 
   const handleSave = () => {
     setStoredApiKey(apiKey.trim() || null)
+    setStoredOpenAiKey(openAiKey.trim() || null)
     setStoredModel(model)
     setSaved(true)
     setTimeout(() => {
@@ -58,7 +80,9 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
 
   const handleClear = () => {
     setApiKey("")
+    setOpenAiKey("")
     setStoredApiKey(null)
+    setStoredOpenAiKey(null)
     setSaved(true)
   }
 
@@ -66,7 +90,7 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Set Claude API Key</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Set API Keys</h2>
           <button
             onClick={onClose}
             className="p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
@@ -76,10 +100,21 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
         </div>
 
         <p className="text-sm text-gray-600 mb-4">
-          After the free tier is exhausted, you'll need your own Anthropic API key to generate book outlines.
-          Your key is stored locally in your browser.
+          After the free tier is exhausted, you'll need your own OpenAI or
+          Anthropic API key to generate book outlines. Your keys are stored
+          locally in your browser.
         </p>
 
+        <label className="block text-sm font-medium text-gray-700 mb-1">OpenAI API key</label>
+        <input
+          type="password"
+          value={openAiKey}
+          onChange={(e) => setOpenAiKey(e.target.value)}
+          placeholder="sk-..."
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent mb-3"
+        />
+
+        <label className="block text-sm font-medium text-gray-700 mb-1">Anthropic API key</label>
         <input
           type="password"
           value={apiKey}
@@ -89,11 +124,13 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
         />
 
         <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
-        <div className={`space-y-2 mb-4 ${!apiKey.trim() ? "opacity-50 pointer-events-none" : ""}`}>
+        <div className={`space-y-2 mb-4 ${!apiKey.trim() && !openAiKey.trim() ? "opacity-50 pointer-events-none" : ""}`}>
           {[
-            { id: "haiku-4-5" as ModelChoice, name: "Haiku 4.5", price: "$0.60", desc: "Fastest" },
-            { id: "sonnet-4-5" as ModelChoice, name: "Sonnet 4.5", price: "$1.80", desc: "Balanced" },
-            { id: "opus-4-5" as ModelChoice, name: "Opus 4.5", price: "$3.00", desc: "Most capable" },
+            { id: "sonnet-5" as ModelChoice, name: "Sonnet 5", price: "$2.30", desc: "Default · Recommended", needsKey: apiKey.trim() },
+            { id: "gpt-5.6-sol" as ModelChoice, name: "GPT-5.6 Sol", price: "$6.40", desc: "Fast mode", needsKey: openAiKey.trim() },
+            { id: "haiku-4-5" as ModelChoice, name: "Haiku 4.5", price: "$0.60", desc: "Fastest", needsKey: apiKey.trim() },
+            { id: "sonnet-4-5" as ModelChoice, name: "Sonnet 4.5", price: "$1.80", desc: "Balanced", needsKey: apiKey.trim() },
+            { id: "opus-4-5" as ModelChoice, name: "Opus 4.5", price: "$3.00", desc: "Most capable", needsKey: apiKey.trim() },
           ].map((opt) => (
             <label
               key={opt.id}
@@ -101,7 +138,7 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
                 model === opt.id
                   ? "border-sky-500 bg-sky-50"
                   : "border-gray-200 hover:border-gray-300"
-              }`}
+              } ${!opt.needsKey ? "opacity-50 pointer-events-none" : ""}`}
             >
               <div className="flex items-center gap-3">
                 <input
@@ -121,8 +158,8 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
             </label>
           ))}
         </div>
-        {!apiKey.trim() && (
-          <p className="text-xs text-gray-500 mb-4">Set API key to unlock model selection</p>
+        {!apiKey.trim() && !openAiKey.trim() && (
+          <p className="text-xs text-gray-500 mb-4">Set an API key to unlock model selection</p>
         )}
 
         {saved && (

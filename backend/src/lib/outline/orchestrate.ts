@@ -6,7 +6,8 @@ import type {
   OutlineEntities,
 } from "../types"
 import { generateId } from "../utils"
-import { generateChapterOutline, generateSectionDetails, type ModelChoice } from "./generate"
+import { generateChapterOutline, generateSectionDetails } from "./generate"
+import type { ModelChoice } from "./models"
 import { generateChapters } from "./parseChapters"
 
 export async function orchestrateChapters(
@@ -106,7 +107,10 @@ export async function orchestrateBookOutline(
     author: bookAuthor,
     filename,
     sessionId,
-    visibility: process.env.NODE_ENV === "development" ? "fully_public" : "summary_public",
+    visibility:
+      process.env.NODE_ENV === "development"
+        ? "fully_public"
+        : "summary_public",
     chunks,
   }
 
