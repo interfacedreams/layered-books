@@ -27,10 +27,16 @@ export default function BookPage() {
   const handleAbstractionLevelChange = (newLevel: number) => {
     setAbstractionLevel(newLevel)
 
-    // Always clear current selection when abstraction level changes
+    // Always clear current selection when abstraction level changes. Rewriting
+    // the URL rather than assigning to location.hash keeps this off the history
+    // stack and avoids leaving a bare "#" behind.
     const currentHash = window.location.hash.substring(1)
     if (currentHash) {
-      window.location.hash = ""
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname + window.location.search,
+      )
       setCurrentItemId(null)
     }
   }

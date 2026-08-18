@@ -1,82 +1,47 @@
 import clsx from "clsx"
 import { ChevronDown, ChevronRight } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import FloatingMenu from "./FloatingMenu"
-
-interface Item {
-  id: string
-  content: string
-  description?: string
-  depth: number
-  children?: Item[]
-}
+import type { OutlineNode } from "./utils"
 
 interface BulletItemProps {
-  item: Item
-  maxDepthExclusive: number
+  item: OutlineNode
   selectedItemId: string | null
-  expansionPath: string[]
-  shouldScroll: boolean
+  expandedIds: Set<string>
+  onToggleExpanded: (id: string) => void
+  registerItemRef: (id: string, element: HTMLButtonElement | null) => void
   onItemClick: (id: string) => void
   onCopy: (text: string) => void
   onLink: (id: string) => void
   onOpenReading: (id: string) => void
-  onScrollComplete?: () => void
   hasChunks: boolean
 }
 
 export default function OutlineItem({
   item,
-  maxDepthExclusive,
   selectedItemId,
-  expansionPath,
-  shouldScroll,
+  expandedIds,
+  onToggleExpanded,
+  registerItemRef,
   onItemClick,
   onCopy,
   onLink,
   onOpenReading,
-  onScrollComplete,
   hasChunks,
 }: BulletItemProps) {
   const [isItemHovered, setIsItemHovered] = useState(false)
   const [isIconAreaHovered, setIsIconAreaHovered] = useState(false)
   const showIcons = isItemHovered || isIconAreaHovered
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const userClickedRef = useRef(false)
   const isSelected = selectedItemId === item.id
 
-  const [isExpanded, setIsExpanded] = useState(
-    item.depth < maxDepthExclusive || expansionPath.includes(item.id)
-  )
-
-  useEffect(() => {
-    if (expansionPath.includes(item.id) && !userClickedRef.current) {
-      // only expand items in the expansion path on first page load, not on manual clicks
-      setIsExpanded(true)
-    }
-  }, [expansionPath, item.id])
-
-  useEffect(() => {
-    if (isSelected && shouldScroll && buttonRef.current) {
-      const element = buttonRef.current
-      const rect = element.getBoundingClientRect()
-      const isInView = rect.top >= 0 && rect.bottom <= window.innerHeight
-
-      if (!isInView) {
-        element.scrollIntoView({ behavior: "smooth", block: "center" })
-      }
-      onScrollComplete?.()
-    }
-  }, [isSelected, shouldScroll, onScrollComplete])
-
-  const hasChildren = item.children && item.children.length > 0
+  const isExpanded = expandedIds.has(item.id)
+  const hasChildren = !!item.children?.length
   const shouldShowChildren = isExpanded && hasChildren
   const isChapter = item.depth === 0
 
   const handleClick = () => {
     if (hasChildren) {
-      userClickedRef.current = true
-      setIsExpanded(!isExpanded)
+      onToggleExpanded(item.id)
     }
     onItemClick(item.id)
   }
@@ -102,13 +67,14 @@ export default function OutlineItem({
       <div className="flex w-full">
         <div style={{ width: `${item.depth * 24}px` }} />
         <button
-          ref={buttonRef}
+          ref={(element) => registerItemRef(item.id, element)}
           type="button"
           className={clsx(
             "relative group rounded-lg sm:px-2 transition-colors flex-1 text-left cursor-pointer",
-            "hover:bg-sky-100",
-            (isSelected || isItemHovered) && "bg-sky-100",
-            isChapter ? "py-3" : "py-1"
+            // Hover sits a shade below selection so the pointer drifting over
+            // rows never reads as a second selected row.
+            isSelected ? "bg-sky-100" : showIcons && "bg-sky-50",
+            isChapter ? "py-3" : "py-1",
           )}
           onClick={handleClick}
           onMouseEnter={() => setIsItemHovered(true)}
@@ -146,7 +112,7 @@ export default function OutlineItem({
               <span
                 className={clsx(
                   "text-gray-800",
-                  isChapter && "text-lg font-semibold"
+                  isChapter && "text-lg font-semibold",
                 )}
               >
                 {item.content}
@@ -165,15 +131,14 @@ export default function OutlineItem({
             <OutlineItem
               key={child.id}
               item={child}
-              maxDepthExclusive={maxDepthExclusive}
               selectedItemId={selectedItemId}
-              expansionPath={expansionPath}
-              shouldScroll={shouldScroll}
+              expandedIds={expandedIds}
+              onToggleExpanded={onToggleExpanded}
+              registerItemRef={registerItemRef}
               onItemClick={onItemClick}
               onCopy={onCopy}
               onLink={onLink}
               onOpenReading={onOpenReading}
-              onScrollComplete={onScrollComplete}
               hasChunks={hasChunks}
             />
           ))}
@@ -183,4 +148,4 @@ export default function OutlineItem({
   )
 }
 
-export type { Item as OutlineItem, BulletItemProps }
+export type { BulletItemProps }

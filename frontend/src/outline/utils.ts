@@ -5,6 +5,20 @@ import type {
   OutlineKeyPoint,
 } from "../types"
 
+export interface OutlineNode {
+  id: string
+  content: string
+  description?: string
+  depth: number
+  children?: OutlineNode[]
+}
+
+// A visible row in the outline, paired with the id of the node that contains it
+export interface FlatOutlineNode {
+  item: OutlineNode
+  parentId: string | null
+}
+
 export function findPathToItem(
   outline: BookOutline,
   targetId: string,
@@ -77,7 +91,7 @@ export function findItemIdByChunk(
   return matchedDetail ? matchedDetail.id : matchedKeyPoint.id
 }
 
-export function transformOutlineToItems(outline: BookOutline) {
+export function transformOutlineToItems(outline: BookOutline): OutlineNode[] {
   return outline.chapters.map((chapter: OutlineChapter) => ({
     id: chapter.id,
     content: chapter.title,
@@ -96,4 +110,43 @@ export function transformOutlineToItems(outline: BookOutline) {
           })) ?? [],
       })) ?? [],
   }))
+}
+
+// Which nodes start out expanded: everything above the current abstraction
+// level, plus the ancestors of a deep-linked item so it is reachable on load.
+export function getInitialExpandedIds(
+  nodes: OutlineNode[],
+  maxDepthExclusive: number,
+  expansionPath: string[],
+): Set<string> {
+  const expanded = new Set<string>()
+  const walk = (list: OutlineNode[]) => {
+    for (const node of list) {
+      if (node.depth < maxDepthExclusive || expansionPath.includes(node.id)) {
+        expanded.add(node.id)
+      }
+      if (node.children) walk(node.children)
+    }
+  }
+  walk(nodes)
+  return expanded
+}
+
+// The outline as it is actually rendered, top to bottom. Arrow-key navigation
+// walks this list, so collapsed subtrees are skipped for free.
+export function flattenVisibleItems(
+  nodes: OutlineNode[],
+  expandedIds: Set<string>,
+): FlatOutlineNode[] {
+  const flat: FlatOutlineNode[] = []
+  const walk = (list: OutlineNode[], parentId: string | null) => {
+    for (const node of list) {
+      flat.push({ item: node, parentId })
+      if (expandedIds.has(node.id) && node.children?.length) {
+        walk(node.children, node.id)
+      }
+    }
+  }
+  walk(nodes, null)
+  return flat
 }
