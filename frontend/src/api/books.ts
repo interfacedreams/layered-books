@@ -1,5 +1,6 @@
 import type { BookOutline, BookSummaries } from "../types"
 import {
+  type ModelChoice,
   getStoredApiKey,
   getStoredModel,
   getStoredOpenAiKey,
@@ -89,7 +90,7 @@ export const fetchUsersBooks = async (
 export interface UploadOptions {
   file: File
   sessionId: string
-  model?: "sonnet-5" | "gpt-5.6-sol" | "haiku-4-5" | "sonnet-4-5" | "opus-4-5"
+  model?: ModelChoice
 }
 
 export const uploadBook = async ({

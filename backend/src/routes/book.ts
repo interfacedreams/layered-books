@@ -26,9 +26,12 @@ import type {
 
 const app = new Hono()
 
+// OpenAI models parked — see the note in lib/outline/models.ts
 const VALID_MODELS: ModelChoice[] = [
   "sonnet-5",
-  "gpt-5.6-sol",
+  // "gpt-5.6-sol",
+  // "gpt-5.6-terra",
+  // "gpt-5.6-luna",
   "haiku-4-5",
   "sonnet-4-5",
   "opus-4-5",
@@ -50,11 +53,10 @@ app.post("/summarize", async (c) => {
     modelProvider(m) === "openai" ? openaiApiKey : anthropicApiKey
   // No key for the requested model: fall back to a model the user does hold a
   // key for, else the free-tier default on the server's key
-  const fallbackModel: ModelChoice = anthropicApiKey
-    ? DEFAULT_MODEL
-    : openaiApiKey
-      ? "gpt-5.6-sol"
-      : DEFAULT_MODEL
+  // While OpenAI models are parked there is nothing to fall back to for an
+  // OpenAI-only user, so everyone lands on the default:
+  //   anthropicApiKey ? DEFAULT_MODEL : openaiApiKey ? "gpt-5.6-sol" : DEFAULT_MODEL
+  const fallbackModel: ModelChoice = DEFAULT_MODEL
   const model: ModelChoice = keyFor(requestedModel)
     ? requestedModel
     : fallbackModel
@@ -218,7 +220,6 @@ app.post("/summarize", async (c) => {
         500,
       )
     }
-
     let bookId: string
     try {
       bookId = await saveOutlineEntities(
@@ -268,7 +269,9 @@ app.get("/status", async (c) => {
     availableModels: [
       "sonnet-5",
       ...(anthropicApiKey ? ["haiku-4-5", "sonnet-4-5", "opus-4-5"] : []),
-      ...(openaiApiKey ? ["gpt-5.6-sol"] : []),
+      // ...(openaiApiKey
+      //   ? ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]
+      //   : []),
     ],
   })
 })

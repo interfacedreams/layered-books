@@ -10,9 +10,13 @@ const API_KEY_STORAGE_KEY = "anthropic-api-key"
 const OPENAI_KEY_STORAGE_KEY = "openai-api-key"
 const MODEL_STORAGE_KEY = "anthropic-model"
 
+// OpenAI models parked until the pipeline limits concurrency — a 200k TPM cap
+// can't absorb the current fan-out. Keep in sync with backend models.ts.
 export type ModelChoice =
   | "sonnet-5"
-  | "gpt-5.6-sol"
+  // | "gpt-5.6-sol"
+  // | "gpt-5.6-terra"
+  // | "gpt-5.6-luna"
   | "haiku-4-5"
   | "sonnet-4-5"
   | "opus-4-5"
@@ -125,12 +129,23 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
 
         <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
         <div className={`space-y-2 mb-4 ${!apiKey.trim() && !openAiKey.trim() ? "opacity-50 pointer-events-none" : ""}`}>
+          {/*
+            Prices are per-book on a ~116k-word reference book (Nicomachean
+            Ethics). Sonnet 5 and Haiku 4.5 are measured from real runs; the
+            rest apply current per-token rates to the measured Haiku token
+            counts, so they are close but not confirmed. OpenAI models use a
+            different tokenizer, which makes those three the softest figures —
+            measure one before treating them as exact. Each is rounded up to the
+            next 10c so the quote is never under what the run actually costs.
+          */}
           {[
-            { id: "sonnet-5" as ModelChoice, name: "Sonnet 5", price: "$2.30", desc: "Default · Recommended", needsKey: apiKey.trim() },
-            { id: "gpt-5.6-sol" as ModelChoice, name: "GPT-5.6 Sol", price: "$6.40", desc: "Fast mode", needsKey: openAiKey.trim() },
-            { id: "haiku-4-5" as ModelChoice, name: "Haiku 4.5", price: "$0.60", desc: "Fastest", needsKey: apiKey.trim() },
-            { id: "sonnet-4-5" as ModelChoice, name: "Sonnet 4.5", price: "$1.80", desc: "Balanced", needsKey: apiKey.trim() },
-            { id: "opus-4-5" as ModelChoice, name: "Opus 4.5", price: "$3.00", desc: "Most capable", needsKey: apiKey.trim() },
+            { id: "sonnet-5" as ModelChoice, name: "Sonnet 5", price: "$1.90", desc: "Default · Recommended", needsKey: apiKey.trim() },
+            { id: "opus-4-5" as ModelChoice, name: "Opus 4.5", price: "$3.30", desc: "Most capable", needsKey: apiKey.trim() },
+            { id: "sonnet-4-5" as ModelChoice, name: "Sonnet 4.5", price: "$2.00", desc: "Balanced", needsKey: apiKey.trim() },
+            { id: "haiku-4-5" as ModelChoice, name: "Haiku 4.5", price: "$0.70", desc: "Fastest", needsKey: apiKey.trim() },
+            // { id: "gpt-5.6-sol" as ModelChoice, name: "GPT-5.6 Sol", price: "$3.50", desc: "OpenAI · Most capable", needsKey: openAiKey.trim() },
+            // { id: "gpt-5.6-terra" as ModelChoice, name: "GPT-5.6 Terra", price: "$1.40", desc: "OpenAI · Balanced", needsKey: openAiKey.trim() },
+            // { id: "gpt-5.6-luna" as ModelChoice, name: "GPT-5.6 Luna", price: "$0.20", desc: "OpenAI · Cheapest", needsKey: openAiKey.trim() },
           ].map((opt) => (
             <label
               key={opt.id}
