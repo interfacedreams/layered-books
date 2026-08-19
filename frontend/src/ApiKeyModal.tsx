@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
 import { X } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface ApiKeyModalProps {
   isOpen: boolean
@@ -46,9 +46,7 @@ export function setStoredOpenAiKey(key: string | null) {
 }
 
 export function getStoredModel(): ModelChoice {
-  return (
-    (localStorage.getItem(MODEL_STORAGE_KEY) as ModelChoice) || "sonnet-5"
-  )
+  return (localStorage.getItem(MODEL_STORAGE_KEY) as ModelChoice) || "sonnet-5"
 }
 
 export function setStoredModel(model: ModelChoice) {
@@ -112,7 +110,9 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
           locally in your browser.
         </p>
 
-        <label className="block text-sm font-medium text-muted mb-1">OpenAI API key</label>
+        <label className="block text-sm font-medium text-muted mb-1">
+          OpenAI API key
+        </label>
         <input
           type="password"
           value={openAiKey}
@@ -121,7 +121,9 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
           className="w-full px-3 py-2 bg-core text-ink placeholder-muted border border-line rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent mb-3"
         />
 
-        <label className="block text-sm font-medium text-muted mb-1">Anthropic API key</label>
+        <label className="block text-sm font-medium text-muted mb-1">
+          Anthropic API key
+        </label>
         <input
           type="password"
           value={apiKey}
@@ -130,8 +132,12 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
           className="w-full px-3 py-2 bg-core text-ink placeholder-muted border border-line rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent mb-4"
         />
 
-        <label className="block text-sm font-medium text-muted mb-2">Model</label>
-        <div className={`space-y-2 mb-4 ${!apiKey.trim() && !openAiKey.trim() ? "opacity-50 pointer-events-none" : ""}`}>
+        <label className="block text-sm font-medium text-muted mb-2">
+          Model
+        </label>
+        <div
+          className={`space-y-2 mb-4 ${!apiKey.trim() && !openAiKey.trim() ? "opacity-50 pointer-events-none" : ""}`}
+        >
           {/*
             Prices are per-book on a ~116k-word reference book (Nicomachean
             Ethics). Sonnet 5 and Haiku 4.5 are measured from real runs; the
@@ -142,10 +148,34 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
             next 10c so the quote is never under what the run actually costs.
           */}
           {[
-            { id: "sonnet-5" as ModelChoice, name: "Sonnet 5", price: "$1.90", desc: "Default · Recommended", needsKey: apiKey.trim() },
-            { id: "opus-4-5" as ModelChoice, name: "Opus 4.5", price: "$3.30", desc: "Most capable", needsKey: apiKey.trim() },
-            { id: "sonnet-4-5" as ModelChoice, name: "Sonnet 4.5", price: "$2.00", desc: "Balanced", needsKey: apiKey.trim() },
-            { id: "haiku-4-5" as ModelChoice, name: "Haiku 4.5", price: "$0.70", desc: "Fastest", needsKey: apiKey.trim() },
+            {
+              id: "sonnet-5" as ModelChoice,
+              name: "Sonnet 5",
+              price: "$1.90",
+              desc: "Default · Recommended",
+              needsKey: apiKey.trim(),
+            },
+            {
+              id: "opus-4-5" as ModelChoice,
+              name: "Opus 4.5",
+              price: "$3.30",
+              desc: "Most capable",
+              needsKey: apiKey.trim(),
+            },
+            {
+              id: "sonnet-4-5" as ModelChoice,
+              name: "Sonnet 4.5",
+              price: "$2.00",
+              desc: "Balanced",
+              needsKey: apiKey.trim(),
+            },
+            {
+              id: "haiku-4-5" as ModelChoice,
+              name: "Haiku 4.5",
+              price: "$0.70",
+              desc: "Fastest",
+              needsKey: apiKey.trim(),
+            },
             // { id: "gpt-5.6-sol" as ModelChoice, name: "GPT-5.6 Sol", price: "$3.50", desc: "OpenAI · Most capable", needsKey: openAiKey.trim() },
             // { id: "gpt-5.6-terra" as ModelChoice, name: "GPT-5.6 Terra", price: "$1.40", desc: "OpenAI · Balanced", needsKey: openAiKey.trim() },
             // { id: "gpt-5.6-luna" as ModelChoice, name: "GPT-5.6 Luna", price: "$0.20", desc: "OpenAI · Cheapest", needsKey: openAiKey.trim() },
@@ -172,17 +202,20 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
                   <span className="text-muted text-sm ml-2">{opt.desc}</span>
                 </div>
               </div>
-              <span className="text-sm text-muted">~{opt.price}<span className="text-xs text-muted">/book</span></span>
+              <span className="text-sm text-muted">
+                ~{opt.price}
+                <span className="text-xs text-muted">/book</span>
+              </span>
             </label>
           ))}
         </div>
         {!apiKey.trim() && !openAiKey.trim() && (
-          <p className="text-xs text-muted mb-4">Set an API key to unlock model selection</p>
+          <p className="text-xs text-muted mb-4">
+            Set an API key to unlock model selection
+          </p>
         )}
 
-        {saved && (
-          <p className="text-sm text-highlight mb-4">Saved!</p>
-        )}
+        {saved && <p className="text-sm text-highlight mb-4">Saved!</p>}
 
         <div className="flex gap-2">
           <button

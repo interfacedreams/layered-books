@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
 import { Loader2 } from "lucide-react"
+import { useState } from "react"
 import { useDropzone } from "react-dropzone"
+import ApiKeyModal, { getStoredApiKey } from "./ApiKeyModal"
 import { fetchStatus, fetchUsersBooks, uploadBook } from "./api/books"
 import BookPreview from "./BookPreview"
-import ApiKeyModal, { getStoredApiKey } from "./ApiKeyModal"
 import { getSessionId } from "./utils"
 
 interface Book {
@@ -34,15 +34,16 @@ export default function Home() {
   })
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) =>
-      uploadBook({ file, sessionId: getSessionId() }),
+    mutationFn: (file: File) => uploadBook({ file, sessionId: getSessionId() }),
     onSuccess: () => {
       setUploadError(null)
       queryClient.invalidateQueries({ queryKey: ["allBooks"] })
     },
     onError: (err: Error) => {
       if (err.message === "API_KEY_REQUIRED") {
-        setUploadError("Free tier exhausted. Please set your API key to continue.")
+        setUploadError(
+          "Free tier exhausted. Please set your API key to continue.",
+        )
       } else {
         setUploadError(err.message)
       }
@@ -97,105 +98,105 @@ export default function Home() {
 
   return (
     <>
-    <div className="p-4 max-w-4xl mx-auto">
-      {/* Upload Section */}
-      <h3 className="text-3xl font-semibold text-ink mb-6 text-center">
-        Navigate a book using a nested summary
-      </h3>
-      <div
-        {...getRootProps()}
-        className={`w-full h-32 flex flex-col items-center justify-center cursor-pointer mb-8 rounded-lg transition-all bg-surface border-2 border-dashed border-accent ${
-          isDragActive ? "border-muted bg-accent/50" : ""
-        } ${uploadMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
-      >
-        <input {...getInputProps()} />
-        {uploadMutation.isPending && (
-          <Loader2 className="h-8 w-8 mb-3 text-highlight animate-spin" />
-        )}
-        <div className="text-center">
-          <span className="font-bold text-lg text-ink">
-            {uploadMutation.isPending
-              ? "Uploading..."
-              : isDragActive
-              ? "Drop EPUB here"
-              : "Drag and drop EPUB"}
-          </span>
-          <p className="text-sm text-muted mt-1">
-            {!uploadMutation.isPending &&
-              "Generating the book outline with AI usually takes 1-3 minutes"}
-          </p>
-          {uploadError && (
-            <p className="text-sm text-red-400 mt-1">{uploadError}</p>
+      <div className="p-4 max-w-4xl mx-auto">
+        {/* Upload Section */}
+        <h3 className="text-3xl font-semibold text-ink mb-6 text-center">
+          Navigate a book using a nested summary
+        </h3>
+        <div
+          {...getRootProps()}
+          className={`w-full h-32 flex flex-col items-center justify-center cursor-pointer mb-8 rounded-lg transition-all bg-surface border-2 border-dashed border-accent ${
+            isDragActive ? "border-muted bg-accent/50" : ""
+          } ${uploadMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          <input {...getInputProps()} />
+          {uploadMutation.isPending && (
+            <Loader2 className="h-8 w-8 mb-3 text-highlight animate-spin" />
           )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Example Books - First on mobile, Right Column on desktop */}
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
-            Example Books
-          </h3>
-          <div className="space-y-2">
-            {exampleBooks.map((book) => (
-              <BookPreview
-                key={book.id}
-                id={book.id}
-                title={book.title}
-                author={book.author}
-              />
-            ))}
+          <div className="text-center">
+            <span className="font-bold text-lg text-ink">
+              {uploadMutation.isPending
+                ? "Uploading..."
+                : isDragActive
+                  ? "Drop EPUB here"
+                  : "Drag and drop EPUB"}
+            </span>
+            <p className="text-sm text-muted mt-1">
+              {!uploadMutation.isPending &&
+                "Generating the book outline with AI usually takes 1-3 minutes"}
+            </p>
+            {uploadError && (
+              <p className="text-sm text-red-400 mt-1">{uploadError}</p>
+            )}
           </div>
         </div>
 
-        {/* User Books - Second on mobile, Left Column on desktop */}
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
-            Your Books
-          </h3>
-          <div className="space-y-2">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted" />
-              </div>
-            ) : booksFailed ? (
-              <div className="py-4">
-                <p className="text-sm text-red-400">
-                  Couldn't load your books.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => refetchBooks()}
-                  className="mt-2 px-3 py-1.5 text-ink border border-line rounded-md text-sm font-medium hover:bg-accent/30 transition-all duration-200 cursor-pointer"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : booksData && booksData.length > 0 ? (
-              booksData.map((book) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Example Books - First on mobile, Right Column on desktop */}
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
+              Example Books
+            </h3>
+            <div className="space-y-2">
+              {exampleBooks.map((book) => (
                 <BookPreview
                   key={book.id}
                   id={book.id}
                   title={book.title}
                   author={book.author}
                 />
-              ))
-            ) : (
-              <p className="text-muted">No books uploaded yet</p>
-            )}
+              ))}
+            </div>
+          </div>
+
+          {/* User Books - Second on mobile, Left Column on desktop */}
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
+              Your Books
+            </h3>
+            <div className="space-y-2">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted" />
+                </div>
+              ) : booksFailed ? (
+                <div className="py-4">
+                  <p className="text-sm text-red-400">
+                    Couldn't load your books.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => refetchBooks()}
+                    className="mt-2 px-3 py-1.5 text-ink border border-line rounded-md text-sm font-medium hover:bg-accent/30 transition-all duration-200 cursor-pointer"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : booksData && booksData.length > 0 ? (
+                booksData.map((book) => (
+                  <BookPreview
+                    key={book.id}
+                    id={book.id}
+                    title={book.title}
+                    author={book.author}
+                  />
+                ))
+              ) : (
+                <p className="text-muted">No books uploaded yet</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <ApiKeyModal
-      isOpen={showApiKeyModal}
-      onClose={() => {
-        setShowApiKeyModal(false)
-        if (getStoredApiKey()) {
-          setUploadError(null)
-        }
-      }}
-    />
+      <ApiKeyModal
+        isOpen={showApiKeyModal}
+        onClose={() => {
+          setShowApiKeyModal(false)
+          if (getStoredApiKey()) {
+            setUploadError(null)
+          }
+        }}
+      />
     </>
   )
 }

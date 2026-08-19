@@ -1,11 +1,11 @@
 import { type DbConnection, db } from "../db"
 import {
   type Book,
+  booksTable,
   type Chapter,
+  chaptersTable,
   type KeyDetail,
   type KeyPoint,
-  booksTable,
-  chaptersTable,
   keyDetailsTable,
   keyPointsTable,
 } from "../db/schema"

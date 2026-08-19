@@ -104,9 +104,7 @@ export default function OutlineItem({
                 />
               )
             ) : (
-              <span className="text-muted text-sm mt-0.5 flex-shrink-0">
-                •
-              </span>
+              <span className="text-muted text-sm mt-0.5 flex-shrink-0">•</span>
             )}
             <div className="flex flex-col flex-1">
               <span

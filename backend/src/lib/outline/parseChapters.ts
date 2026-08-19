@@ -1,6 +1,6 @@
 import { generateObject } from "ai"
 import { z } from "zod"
-import { type ModelChoice, getGenerationSettings, getModel } from "./models"
+import { getGenerationSettings, getModel, type ModelChoice } from "./models"
 import { getKeypointExamples, keyPointStyleGuidelines } from "./style"
 
 const chapterSchema = z.object({

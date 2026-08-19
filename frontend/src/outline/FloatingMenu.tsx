@@ -32,12 +32,16 @@ export default function FloatingMenu({
       title: "Get link",
       onClick: onLink,
     },
-    ...(hasChunks ? [{
-      id: "read",
-      content: <BookOpenText size={16} />,
-      title: "Read from here",
-      onClick: onRead,
-    }] : []),
+    ...(hasChunks
+      ? [
+          {
+            id: "read",
+            content: <BookOpenText size={16} />,
+            title: "Read from here",
+            onClick: onRead,
+          },
+        ]
+      : []),
   ]
   return (
     <>

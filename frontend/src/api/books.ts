@@ -1,10 +1,10 @@
-import type { BookOutline, BookSummaries } from "../types"
 import {
-  type ModelChoice,
   getStoredApiKey,
   getStoredModel,
   getStoredOpenAiKey,
+  type ModelChoice,
 } from "../ApiKeyModal"
+import type { BookOutline, BookSummaries } from "../types"
 
 export interface StatusResponse {
   isFreeTierAvailable: boolean
