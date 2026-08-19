@@ -99,13 +99,13 @@ export default function Home() {
     <>
     <div className="p-4 max-w-4xl mx-auto">
       {/* Upload Section */}
-      <h3 className="text-2xl font-semibold text-ink mb-6 text-center">
+      <h3 className="text-3xl font-semibold text-ink mb-6 text-center">
         Navigate a book using a nested summary
       </h3>
       <div
         {...getRootProps()}
-        className={`w-full h-32 flex flex-col items-center justify-center cursor-pointer mb-8 rounded-lg transition-all bg-surface border-2 border-dashed border-line ${
-          isDragActive ? "border-highlight bg-accent/25" : ""
+        className={`w-full h-32 flex flex-col items-center justify-center cursor-pointer mb-8 rounded-lg transition-all bg-surface border-2 border-dashed border-accent ${
+          isDragActive ? "border-muted bg-accent/50" : ""
         } ${uploadMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
       >
         <input {...getInputProps()} />
@@ -136,7 +136,7 @@ export default function Home() {
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
             Example Books
           </h3>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {exampleBooks.map((book) => (
               <BookPreview
                 key={book.id}
@@ -153,7 +153,7 @@ export default function Home() {
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
             Your Books
           </h3>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted" />

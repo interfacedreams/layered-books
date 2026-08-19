@@ -10,7 +10,7 @@ export default function BookPreview({ id, title, author }: BookLinkProps) {
   return (
     <Link
       to={`/book/${id}`}
-      className="group flex items-center gap-3 rounded-md p-2 bg-surface transition-colors cursor-pointer hover:bg-accent/25"
+      className="group flex items-center gap-3 rounded-md p-3 bg-line transition-colors cursor-pointer hover:bg-accent/50"
     >
       <div className="min-w-0">
         {/* Two lines of height are always reserved so every card matches,

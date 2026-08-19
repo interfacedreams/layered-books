@@ -30,7 +30,7 @@ export default function AbstractionStepper({
 
   return (
     <div className="mb-4">
-      <div className="flex bg-accent p-1 rounded-lg w-fit gap-1">
+      <div className="flex border border-line p-1 rounded-lg w-fit gap-1">
         {options.map((option) => (
           <button
             key={option.level}
@@ -38,7 +38,7 @@ export default function AbstractionStepper({
             onClick={() => onChange(option.level)}
             className={`
               px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer
-              ${value === option.level ? "bg-highlight text-ink" : "text-ink hover:bg-highlight/40"}
+              ${value === option.level ? "bg-accent/40 text-ink" : "text-muted hover:bg-accent/20 hover:text-ink"}
             `}
             title={option.description}
           >
