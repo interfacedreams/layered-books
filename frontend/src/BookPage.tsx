@@ -11,7 +11,7 @@ export default function BookPage() {
   const { bookId } = useParams<{ bookId: string }>()
   const [abstractionLevel, setAbstractionLevel] = useState(0)
   const [isSplitViewOpen, setIsSplitViewOpen] = useState(false)
-  const [startChunkIndex, setStartChunkIndex] = useState(0)
+  const [startChunkNumber, setStartChunkNumber] = useState<number>()
   const [currentItemId, setCurrentItemId] = useState<string | null>(null)
 
   const {
@@ -47,7 +47,7 @@ export default function BookPage() {
     // Level 0: Search only in chapters
     const chapter = book.outline.chapters.find((ch) => ch.id === itemId)
     if (chapter) {
-      setStartChunkIndex(chapter.textStartChunk)
+      setStartChunkNumber(chapter.textStartChunk)
       setIsSplitViewOpen(true)
       return
     }
@@ -57,7 +57,7 @@ export default function BookPage() {
       if (chapter.keyPoints) {
         const keyPoint = chapter.keyPoints.find((kp) => kp.id === itemId)
         if (keyPoint) {
-          setStartChunkIndex(keyPoint.textStartChunk)
+          setStartChunkNumber(keyPoint.textStartChunk)
           setIsSplitViewOpen(true)
           return
         }
@@ -70,7 +70,7 @@ export default function BookPage() {
           if (keyPoint.keyDetails) {
             const keyDetail = keyPoint.keyDetails.find((kd) => kd.id === itemId)
             if (keyDetail) {
-              setStartChunkIndex(keyDetail.textStartChunk)
+              setStartChunkNumber(keyDetail.textStartChunk)
               setIsSplitViewOpen(true)
               return
             }
@@ -82,7 +82,7 @@ export default function BookPage() {
 
   const handleCloseSplitView = () => {
     setIsSplitViewOpen(false)
-    setStartChunkIndex(0)
+    setStartChunkNumber(undefined)
   }
   const handleSplitViewClick = () => {
     if (currentItemId) {
@@ -136,7 +136,7 @@ export default function BookPage() {
         <div className="w-1/2">
           <PageViewer
             chunks={book.outline.chunks}
-            startChunkIndex={startChunkIndex}
+            startChunkNumber={startChunkNumber}
             onClose={handleCloseSplitView}
           />
         </div>
