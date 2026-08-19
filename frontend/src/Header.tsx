@@ -29,11 +29,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md cursor-pointer transition-colors font-medium ${
-                hasApiKey
-                  ? "bg-core/40 text-ink hover:bg-core/60"
-                  : "bg-core text-ink hover:bg-core/80"
-              }`}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md cursor-pointer transition-colors font-medium bg-core/40 text-ink hover:bg-core/60"
             >
               <Key className="h-4 w-4" />
               {hasApiKey ? "API Key Set" : "Set API Key"}

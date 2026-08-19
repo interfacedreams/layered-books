@@ -67,6 +67,11 @@ export default function Home() {
 
   const exampleBooks: Book[] = [
     {
+      id: "ujtu97pqmlzr",
+      title: "The Nicomachean Ethics",
+      author: "Aristotle",
+    },
+    {
       id: "pe22wop6o1a7",
       title: "The Varieties of Religious Experience: A Study in Human Nature",
       author: "William James",
@@ -80,11 +85,6 @@ export default function Home() {
       id: "iulfuvnhy8wk",
       title: "The Federalist Papers",
       author: "Alexander Hamilton et al.",
-    },
-    {
-      id: "ujtu97pqmlzr",
-      title: "The Nicomachean Ethics",
-      author: "Aristotle",
     },
   ]
 
