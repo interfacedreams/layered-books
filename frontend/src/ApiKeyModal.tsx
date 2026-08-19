@@ -55,14 +55,14 @@ export function setStoredModel(model: ModelChoice) {
 
 export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
   const [apiKey, setApiKey] = useState("")
-  const [openAiKey, setOpenAiKey] = useState("")
+  // const [openAiKey, setOpenAiKey] = useState("")
   const [model, setModel] = useState<ModelChoice>("sonnet-5")
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
       setApiKey(getStoredApiKey() || "")
-      setOpenAiKey(getStoredOpenAiKey() || "")
+      // setOpenAiKey(getStoredOpenAiKey() || "")
       setModel(getStoredModel())
       setSaved(false)
     }
@@ -72,7 +72,7 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
 
   const handleSave = () => {
     setStoredApiKey(apiKey.trim() || null)
-    setStoredOpenAiKey(openAiKey.trim() || null)
+    // setStoredOpenAiKey(openAiKey.trim() || null)
     setStoredModel(model)
     setSaved(true)
     setTimeout(() => {
@@ -82,9 +82,9 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
 
   const handleClear = () => {
     setApiKey("")
-    setOpenAiKey("")
+    // setOpenAiKey("")
     setStoredApiKey(null)
-    setStoredOpenAiKey(null)
+    // setStoredOpenAiKey(null)
     setSaved(true)
   }
 
@@ -95,7 +95,7 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
     >
       <div className="bg-surface border border-line rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-ink">Set API Keys</h2>
+          <h2 className="text-lg font-semibold text-ink">Set API Key</h2>
           <button
             onClick={onClose}
             className="p-1 rounded-md text-muted hover:text-muted hover:bg-accent/25 cursor-pointer transition-colors"
@@ -105,11 +105,13 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
         </div>
 
         <p className="text-sm text-muted mb-4">
-          After the free tier is exhausted, you'll need your own OpenAI or
-          Anthropic API key to generate book outlines. Your keys are stored
-          locally in your browser.
+          After the free tier is exhausted, you'll need your own Anthropic API
+          key to generate book outlines. Your key is stored locally in your
+          browser.
         </p>
 
+        {/* OpenAI support is parked for now. Restore this field together with
+            the OpenAI model options when the pipeline supports those models.
         <label className="block text-sm font-medium text-muted mb-1">
           OpenAI API key
         </label>
@@ -120,6 +122,7 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
           placeholder="sk-..."
           className="w-full px-3 py-2 bg-core text-ink placeholder-muted border border-line rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent mb-3"
         />
+        */}
 
         <label className="block text-sm font-medium text-muted mb-1">
           Anthropic API key
@@ -136,7 +139,7 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
           Model
         </label>
         <div
-          className={`space-y-2 mb-4 ${!apiKey.trim() && !openAiKey.trim() ? "opacity-50 pointer-events-none" : ""}`}
+          className={`space-y-2 mb-4 ${!apiKey.trim() ? "opacity-50 pointer-events-none" : ""}`}
         >
           {/*
             Prices are per-book on a ~116k-word reference book (Nicomachean
@@ -209,7 +212,7 @@ export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
             </label>
           ))}
         </div>
-        {!apiKey.trim() && !openAiKey.trim() && (
+        {!apiKey.trim() && (
           <p className="text-xs text-muted mb-4">
             Set an API key to unlock model selection
           </p>
