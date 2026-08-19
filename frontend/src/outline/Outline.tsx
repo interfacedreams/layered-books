@@ -124,14 +124,35 @@ export default function Outline({
     [setCurrentItemId],
   )
 
+  // The split view assumes two side-by-side columns, so auto-opening is desktop
+  // only. Matches the sm: breakpoint the "Read in split view" button uses.
+  const canAutoOpenReader = useCallback(
+    () => hasChunks && window.matchMedia("(min-width: 640px)").matches,
+    [hasChunks],
+  )
+
   // Clicking a row: the row itself toggles expansion, and an already-open
-  // reader follows along.
+  // reader follows along. A leaf row has no expansion to toggle, so on desktop
+  // its click opens the reader instead of doing nothing visible.
   const handleItemClick = useCallback(
     (id: string) => {
       selectItem(id)
-      if (isSplitViewOpen) onOpenReading(id)
+      if (isSplitViewOpen) {
+        onOpenReading(id)
+        return
+      }
+      const entry = visibleItems.find((candidate) => candidate.item.id === id)
+      if (!entry?.item.children?.length && canAutoOpenReader()) {
+        onOpenReading(id)
+      }
     },
-    [selectItem, isSplitViewOpen, onOpenReading],
+    [
+      selectItem,
+      isSplitViewOpen,
+      onOpenReading,
+      visibleItems,
+      canAutoOpenReader,
+    ],
   )
 
   // Enter mirrors a click, so it toggles the row and keeps an open reader in
@@ -140,10 +161,20 @@ export default function Outline({
     (id: string) => {
       selectItem(id)
       const entry = visibleItems.find((candidate) => candidate.item.id === id)
-      if (entry?.item.children?.length) toggleExpanded(id)
-      if (isSplitViewOpen) onOpenReading(id)
+      const hasChildren = !!entry?.item.children?.length
+      if (hasChildren) toggleExpanded(id)
+      if (isSplitViewOpen || (!hasChildren && canAutoOpenReader())) {
+        onOpenReading(id)
+      }
     },
-    [selectItem, visibleItems, toggleExpanded, isSplitViewOpen, onOpenReading],
+    [
+      selectItem,
+      visibleItems,
+      toggleExpanded,
+      isSplitViewOpen,
+      onOpenReading,
+      canAutoOpenReader,
+    ],
   )
 
   // Shift/Cmd+Enter is the "read from here" action: open the split view on this

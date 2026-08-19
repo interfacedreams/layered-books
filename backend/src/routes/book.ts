@@ -26,6 +26,18 @@ import type {
 
 const app = new Hono()
 
+// Sharing is off for user books, so the home page's example books are the only
+// ones anyone can open. Adding an example means adding its id here and to
+// exampleBooks in frontend/src/Home.tsx. Their stored visibility still decides
+// whether non-creators get the book text: fully_public serves chunks,
+// summary_public serves the outline only.
+const EXAMPLE_BOOK_IDS = [
+  "pe22wop6o1a7", // The Varieties of Religious Experience
+  "lm8ebjbfygk6", // The Origin of Species
+  "iulfuvnhy8wk", // The Federalist Papers
+  "ujtu97pqmlzr", // The Nicomachean Ethics
+]
+
 // OpenAI models parked — see the note in lib/outline/models.ts
 const VALID_MODELS: ModelChoice[] = [
   "sonnet-5",
@@ -309,17 +321,24 @@ app.get("/:bookId", async (c) => {
       return c.json({ error: "Book not found" }, 404)
     }
 
-    // Sharing is disabled for now: books are only accessible by their creator,
-    // regardless of the stored visibility setting.
-    if (outline.sessionId !== sessionId) {
+    // Sharing is disabled for user books: only the creator can open them. The
+    // example books on the home page are the exception.
+    const isCreator = outline.sessionId === sessionId
+    if (!isCreator && !EXAMPLE_BOOK_IDS.includes(bookId)) {
       return c.json({ error: "Access denied" }, 403)
     }
+
+    // summary_public hides the book text from everyone but the creator
+    const responseOutline =
+      outline.visibility === "summary_public" && !isCreator
+        ? { ...outline, chunks: [] }
+        : outline
 
     return c.json({
       id: outline.id,
       title: outline.title,
       author: outline.author,
-      outline,
+      outline: responseOutline,
     })
   } catch (error) {
     if (error instanceof Error) {

@@ -81,6 +81,11 @@ export default function Home() {
       title: "The Federalist Papers",
       author: "Alexander Hamilton et al.",
     },
+    {
+      id: "ujtu97pqmlzr",
+      title: "The Nicomachean Ethics",
+      author: "Aristotle",
+    },
   ]
 
   // Show the error only when there is nothing to display. A background refetch
