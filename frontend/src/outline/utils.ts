@@ -112,6 +112,33 @@ export function transformOutlineToItems(outline: BookOutline): OutlineNode[] {
   }))
 }
 
+function markdownBullet(text: string, depth: number): string {
+  // Outline text can contain line breaks from extraction. Folding whitespace
+  // keeps every entry on one line so it cannot accidentally break the list.
+  return `${"  ".repeat(depth)}- ${text.replace(/\s+/g, " ").trim()}`
+}
+
+export function formatOutlineAsMarkdown(outline: BookOutline): string {
+  const lines: string[] = []
+
+  for (const chapter of outline.chapters) {
+    const chapterText = chapter.description.trim()
+      ? `${chapter.title.trim()}: ${chapter.description.trim()}`
+      : chapter.title.trim()
+    lines.push(markdownBullet(chapterText, 0))
+
+    for (const keyPoint of chapter.keyPoints ?? []) {
+      lines.push(markdownBullet(keyPoint.text, 1))
+
+      for (const detail of keyPoint.keyDetails ?? []) {
+        lines.push(markdownBullet(detail.text, 2))
+      }
+    }
+  }
+
+  return lines.join("\n")
+}
+
 // Which nodes start out expanded: everything above the current abstraction
 // level, plus the ancestors of a deep-linked item so it is reachable on load.
 export function getInitialExpandedIds(
