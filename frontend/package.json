@@ -34,10 +34,5 @@
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9",
     "vite": "^8.2.1"
-  },
-  "optionalDependencies": {
-    "@biomejs/biome-linux-x64": "*",
-    "@rolldown/binding-linux-x64-gnu": "*",
-    "lightningcss-linux-x64-gnu": "*"
   }
 }
