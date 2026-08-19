@@ -27,6 +27,7 @@ export default function Home() {
     data: booksData,
     isLoading,
     error,
+    refetch: refetchBooks,
   } = useQuery({
     queryKey: ["allBooks"],
     queryFn: () => fetchUsersBooks(getSessionId()),
@@ -82,56 +83,55 @@ export default function Home() {
     },
   ]
 
-  if (error || (!isLoading && !booksData)) {
+  // Show the error only when there is nothing to display. A background refetch
+  // that fails still has cached books, so keep rendering those.
+  const booksFailed = !isLoading && !booksData
+  if (error) {
     console.error("Error loading books:", error)
-    return null
   }
 
   return (
     <>
     <div className="p-4 max-w-4xl mx-auto">
       {/* Upload Section */}
-      <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">
-        Generate a layered book from your EPUB
+      <h3 className="text-2xl font-semibold text-ink mb-6 text-center">
+        Navigate a book using a nested summary
       </h3>
       <div
         {...getRootProps()}
-        className={`w-full h-32 flex flex-col items-center justify-center cursor-pointer mb-8 rounded-lg transition-all bg-sky-50 border-2 border-dashed border-gray-300 ${
-          isDragActive ? "border-gray-400 bg-sky-100" : ""
+        className={`w-full h-32 flex flex-col items-center justify-center cursor-pointer mb-8 rounded-lg transition-all bg-surface border-2 border-dashed border-line ${
+          isDragActive ? "border-highlight bg-accent/25" : ""
         } ${uploadMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
       >
         <input {...getInputProps()} />
         {uploadMutation.isPending && (
-          <Loader2 className="h-8 w-8 mb-3 text-sky-500 animate-spin" />
+          <Loader2 className="h-8 w-8 mb-3 text-highlight animate-spin" />
         )}
         <div className="text-center">
-          <span className="font-bold text-lg text-gray-900">
+          <span className="font-bold text-lg text-ink">
             {uploadMutation.isPending
               ? "Uploading..."
               : isDragActive
               ? "Drop EPUB here"
-              : "Drag and drop or "}
-            {!uploadMutation.isPending && !isDragActive && (
-              <span className="text-sky-500">Click to upload</span>
-            )}
+              : "Drag and drop EPUB"}
           </span>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted mt-1">
             {!uploadMutation.isPending &&
-              "Generating the book outline usually takes 1-3 minutes"}
+              "Generating the book outline with AI usually takes 1-3 minutes"}
           </p>
           {uploadError && (
-            <p className="text-sm text-red-500 mt-1">{uploadError}</p>
+            <p className="text-sm text-red-400 mt-1">{uploadError}</p>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between gap-6 md:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Example Books - First on mobile, Right Column on desktop */}
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
             Example Books
           </h3>
-          <div>
+          <div className="space-y-1">
             {exampleBooks.map((book) => (
               <BookPreview
                 key={book.id}
@@ -144,14 +144,27 @@ export default function Home() {
         </div>
 
         {/* User Books - Second on mobile, Left Column on desktop */}
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted mb-3">
             Your Books
           </h3>
-          <div>
+          <div className="space-y-1">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-muted" />
+              </div>
+            ) : booksFailed ? (
+              <div className="py-4">
+                <p className="text-sm text-red-400">
+                  Couldn't load your books.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => refetchBooks()}
+                  className="mt-2 px-3 py-1.5 text-ink border border-line rounded-md text-sm font-medium hover:bg-accent/30 transition-all duration-200 cursor-pointer"
+                >
+                  Retry
+                </button>
               </div>
             ) : booksData && booksData.length > 0 ? (
               booksData.map((book) => (
@@ -163,7 +176,7 @@ export default function Home() {
                 />
               ))
             ) : (
-              <p className="text-gray-500">No books uploaded yet</p>
+              <p className="text-muted">No books uploaded yet</p>
             )}
           </div>
         </div>

@@ -41,7 +41,7 @@ export default function BookPanel({
             <button
               type="button"
               onClick={onSplitViewClick}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white text-black border border-gray-300 rounded-md text-sm font-medium hover:bg-sky-100 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-ink border border-line rounded-md text-sm font-medium hover:bg-accent/30 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <SquareSplitHorizontal size={16} />
               Read in split view

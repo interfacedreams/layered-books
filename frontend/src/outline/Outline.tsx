@@ -184,7 +184,7 @@ export default function Outline({
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-core">
       <ul>
         {items.map((item) => (
           <OutlineItem

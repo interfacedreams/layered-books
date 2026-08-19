@@ -5,7 +5,7 @@ import Home from "./Home"
 
 function App() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-core">
       <Header />
 
       {/* Main content */}

@@ -70,10 +70,10 @@ export default function OutlineItem({
           ref={(element) => registerItemRef(item.id, element)}
           type="button"
           className={clsx(
-            "relative group rounded-lg sm:px-2 transition-colors flex-1 text-left cursor-pointer",
+            "relative group rounded-lg sm:px-2 transition-colors flex-1 text-left cursor-pointer outline-none",
             // Hover sits a shade below selection so the pointer drifting over
             // rows never reads as a second selected row.
-            isSelected ? "bg-sky-100" : showIcons && "bg-sky-50",
+            isSelected ? "bg-accent/40" : showIcons && "bg-accent/20",
             isChapter ? "py-3" : "py-1",
           )}
           onClick={handleClick}
@@ -95,23 +95,23 @@ export default function OutlineItem({
               isExpanded ? (
                 <ChevronDown
                   size={18}
-                  className="text-gray-600 mt-0.5 flex-shrink-0"
+                  className="text-muted mt-0.5 flex-shrink-0"
                 />
               ) : (
                 <ChevronRight
                   size={18}
-                  className="text-gray-600 mt-0.5 flex-shrink-0"
+                  className="text-muted mt-0.5 flex-shrink-0"
                 />
               )
             ) : (
-              <span className="text-gray-600 text-sm mt-0.5 flex-shrink-0">
+              <span className="text-muted text-sm mt-0.5 flex-shrink-0">
                 •
               </span>
             )}
             <div className="flex flex-col flex-1">
               <span
                 className={clsx(
-                  "text-gray-800",
+                  "text-ink",
                   isChapter && "text-lg font-semibold",
                 )}
               >

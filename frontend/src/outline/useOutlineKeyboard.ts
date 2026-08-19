@@ -20,7 +20,9 @@ function isTypingTarget(target: EventTarget | null): boolean {
   )
 }
 
-const HANDLED_KEYS = new Set(["ArrowDown", "ArrowUp", "Enter"])
+// j/k mirror the arrows so a reader can move the selection without the arrow
+// keys taking over page scrolling.
+const HANDLED_KEYS = new Set(["ArrowDown", "ArrowUp", "j", "k", "Enter"])
 
 export default function useOutlineKeyboard({
   visibleItems,
@@ -54,12 +56,14 @@ export default function useOutlineKeyboard({
       const { item } = visibleItems[currentIndex]
 
       switch (e.key) {
+        case "j":
         case "ArrowDown": {
           e.preventDefault()
           const next = visibleItems[currentIndex + 1]
           if (next) selectItem(next.item.id)
           break
         }
+        case "k":
         case "ArrowUp": {
           e.preventDefault()
           const prev = visibleItems[currentIndex - 1]

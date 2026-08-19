@@ -1,1 +1,27 @@
+@import "@fontsource-variable/nunito-sans";
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito Sans Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Pewter champagne: one metallic hue at a few lightness levels. */
+  --color-core: #151514;
+  --color-surface: #1c1b19;
+  --color-accent: #756e5b;
+  --color-highlight: #8e8671;
+  --color-ink: #ece8de;
+  --color-muted: #a49d8c;
+  --color-line: #34322c;
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-core);
+  color: var(--color-ink);
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-ink);
+}

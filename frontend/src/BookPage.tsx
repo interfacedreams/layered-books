@@ -104,7 +104,7 @@ export default function BookPage() {
 
   if (error) {
     console.error("Error loading book:", error)
-    return <div className="p-8 text-red-500">Error loading book</div>
+    return <div className="p-8 text-red-400">Error loading book</div>
   }
 
   if (!book) {
@@ -114,9 +114,9 @@ export default function BookPage() {
   if (isSplitViewOpen) {
     // note that this is only shown in the desktop view
     return (
-      <div className="h-screen flex">
+      <div className="h-[calc(100vh-4rem)] flex">
         {/* Left panel - Outline */}
-        <div className="w-1/2 border-r border-gray-200 overflow-y-auto">
+        <div className="w-1/2 border-r border-line overflow-y-auto">
           <div className="pl-20 p-8">
             <BookPanel
               book={book}

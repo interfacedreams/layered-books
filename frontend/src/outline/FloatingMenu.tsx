@@ -52,7 +52,7 @@ export default function FloatingMenu({
               key={action.id}
               type="button"
               onClick={action.onClick}
-              className="px-1 py-1 h-7 hover:bg-sky-100 hover:cursor-pointer rounded-md transition-colors"
+              className="px-1 py-1 h-7 hover:bg-accent/30 hover:cursor-pointer rounded-md transition-colors"
               title={action.title}
             >
               {action.content}
