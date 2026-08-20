@@ -85,7 +85,6 @@ app.post("/summarize", async (c) => {
     console.log("❌ Missing session ID")
     return c.json({ error: "Session ID is required" }, 400)
   }
-  console.log(`📚 Upload request from session: ${sessionId}`)
 
   // Check if free tier is exhausted and user needs their own API key
   const totalBooks = await countAllBooks()
